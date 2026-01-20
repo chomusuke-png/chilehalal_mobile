@@ -1,4 +1,4 @@
-import 'package:chilehalal_mobile/screens/home_screen.dart';
+import 'package:chilehalal_mobile/screens/main_wrapper.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -25,11 +25,13 @@ class MainApp extends StatelessWidget {
           onSurface: Colors.black87,
         ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF325CAD),
-          foregroundColor: Colors.white,
+          backgroundColor: Color(0xFFFFFFFF),
+          foregroundColor: Colors.black87,
+          elevation: 0,
+          centerTitle: true,
         ),
       ),
-      home: const HomeScreen(),
+      home: const MainWrapper(),
     );
   }
 }

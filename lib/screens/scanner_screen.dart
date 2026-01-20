@@ -8,10 +8,6 @@ class ScannerScreen extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Escanear Producto'),
-        backgroundColor: colorScheme.primary,
-      ),
       backgroundColor: colorScheme.surface,
       body: Center(
         child: Column(
