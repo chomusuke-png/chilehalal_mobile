@@ -28,7 +28,6 @@ class HomeScreen extends StatelessWidget {
                 'App en progreso...',
                 style: TextStyle(
                   color: colorScheme.secondary,
-                  fontWeight: FontWeight.w600,
                   fontSize: 16,
                 ),
               ),

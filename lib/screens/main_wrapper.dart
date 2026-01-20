@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
-import 'package:chilehalal_mobile/screens/home_screen.dart';
-import 'package:chilehalal_mobile/screens/scanner_screen.dart';
-import 'package:chilehalal_mobile/screens/account_screen.dart';
+import 'package:chilehalal_mobile/screens/home/home_screen.dart';
+import 'package:chilehalal_mobile/screens/scanner/scanner_screen.dart';
+import 'package:chilehalal_mobile/screens/auth/account_screen.dart';
+import 'package:chilehalal_mobile/widgets/layout/main_app_bar.dart';
 
 class MainWrapper extends StatefulWidget {
   const MainWrapper({super.key});
@@ -28,21 +29,21 @@ class _MainWrapperState extends State<MainWrapper> {
   List<PersistentBottomNavBarItem> _navBarsItems(ColorScheme colorScheme) {
     return [
       PersistentBottomNavBarItem(
-        icon: FaIcon(FontAwesomeIcons.house),
+        icon: const FaIcon(FontAwesomeIcons.house),
         title: "Inicio",
         activeColorPrimary: colorScheme.primary,
         inactiveColorPrimary: Colors.grey,
         activeColorSecondary: Colors.white,
       ),
       PersistentBottomNavBarItem(
-        icon: FaIcon(FontAwesomeIcons.qrcode),
+        icon: const FaIcon(FontAwesomeIcons.qrcode),
         title: "Escanear",
         activeColorPrimary: colorScheme.primary,
         inactiveColorPrimary: Colors.grey,
         activeColorSecondary: Colors.white,
       ),
       PersistentBottomNavBarItem(
-        icon: FaIcon(FontAwesomeIcons.user),
+        icon: const FaIcon(FontAwesomeIcons.user),
         title: "Cuenta",
         activeColorPrimary: colorScheme.primary,
         inactiveColorPrimary: Colors.grey,
@@ -67,24 +68,9 @@ class _MainWrapperState extends State<MainWrapper> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: _currentIndex == 0
-            ? Image.asset(
-                'assets/images/chilehalal-isotipo.png',
-                height: 40,
-                fit: BoxFit.contain,
-              )
-            : Text(_getAppBarTitle(_currentIndex)),
-        backgroundColor: colorScheme.surface,
-        centerTitle: true,
-        elevation: 0,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1.0),
-          child: Container(
-            color: colorScheme.secondary,
-            height: 2.0,
-          ),
-        ),
+      appBar: MainAppBar(
+        currentIndex: _currentIndex,
+        title: _getAppBarTitle(_currentIndex),
       ),
       body: PersistentTabView(
         context,
