@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:chilehalal_mobile/screens/home_screen.dart';
 import 'package:chilehalal_mobile/screens/scanner_screen.dart';
@@ -27,21 +28,21 @@ class _MainWrapperState extends State<MainWrapper> {
   List<PersistentBottomNavBarItem> _navBarsItems(ColorScheme colorScheme) {
     return [
       PersistentBottomNavBarItem(
-        icon: const Icon(Icons.home),
+        icon: FaIcon(FontAwesomeIcons.house),
         title: "Inicio",
         activeColorPrimary: colorScheme.primary,
         inactiveColorPrimary: Colors.grey,
         activeColorSecondary: Colors.white,
       ),
       PersistentBottomNavBarItem(
-        icon: const Icon(Icons.qr_code_scanner),
+        icon: FaIcon(FontAwesomeIcons.qrcode),
         title: "Escanear",
         activeColorPrimary: colorScheme.primary,
         inactiveColorPrimary: Colors.grey,
         activeColorSecondary: Colors.white,
       ),
       PersistentBottomNavBarItem(
-        icon: const Icon(Icons.person),
+        icon: FaIcon(FontAwesomeIcons.user),
         title: "Cuenta",
         activeColorPrimary: colorScheme.primary,
         inactiveColorPrimary: Colors.grey,
