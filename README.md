@@ -1,3 +1,3 @@
-# chilehalal_mobile
+# ChileHalal Mobile
 
-A new Flutter project.
+Una app de celular orientada a clientes de la empresa ChileHalal
