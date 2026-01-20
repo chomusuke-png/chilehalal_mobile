@@ -17,11 +17,6 @@ class _MainWrapperState extends State<MainWrapper> {
     ScannerScreen(),
   ];
 
-  final List<String> _titles = const [
-    'ChileHalal Mobile Home',
-    'Escanear Producto',
-  ];
-
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -33,16 +28,22 @@ class _MainWrapperState extends State<MainWrapper> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight + 1.0),
-        child: AppBar(
-          title: Text(_titles[_selectedIndex]),
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(1.0),
-            child: Container(
-              color: colorScheme.secondary,
-              height: 2.0,
-            ),
+      appBar: AppBar(
+        title: _selectedIndex == 0
+            ? Image.asset(
+                'assets/images/chilehalal-isotipo.png',
+                height: 40,
+                fit: BoxFit.contain,
+              )
+            : const Text('Escanear Producto'),
+        backgroundColor: colorScheme.surface,
+        centerTitle: true,
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(
+            color: colorScheme.secondary,
+            height: 2.0,
           ),
         ),
       ),
