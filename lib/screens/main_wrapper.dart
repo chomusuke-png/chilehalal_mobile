@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:chilehalal_mobile/screens/home_screen.dart';
 import 'package:chilehalal_mobile/screens/scanner_screen.dart';
+import 'package:chilehalal_mobile/screens/account_screen.dart';
 
 class MainWrapper extends StatefulWidget {
   const MainWrapper({super.key});
@@ -10,17 +12,53 @@ class MainWrapper extends StatefulWidget {
 }
 
 class _MainWrapperState extends State<MainWrapper> {
-  int _selectedIndex = 0;
+  final PersistentTabController _controller = PersistentTabController(initialIndex: 0);
+  
+  int _currentIndex = 0;
 
-  final List<Widget> _screens = const [
-    HomeScreen(),
-    ScannerScreen(),
-  ];
+  List<Widget> _buildScreens() {
+    return const [
+      HomeScreen(),
+      ScannerScreen(),
+      AccountScreen(),
+    ];
+  }
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+  List<PersistentBottomNavBarItem> _navBarsItems(ColorScheme colorScheme) {
+    return [
+      PersistentBottomNavBarItem(
+        icon: const Icon(Icons.home),
+        title: "Inicio",
+        activeColorPrimary: colorScheme.primary,
+        inactiveColorPrimary: Colors.grey,
+        activeColorSecondary: Colors.white,
+      ),
+      PersistentBottomNavBarItem(
+        icon: const Icon(Icons.qr_code_scanner),
+        title: "Escanear",
+        activeColorPrimary: colorScheme.primary,
+        inactiveColorPrimary: Colors.grey,
+        activeColorSecondary: Colors.white,
+      ),
+      PersistentBottomNavBarItem(
+        icon: const Icon(Icons.person),
+        title: "Cuenta",
+        activeColorPrimary: colorScheme.primary,
+        inactiveColorPrimary: Colors.grey,
+        activeColorSecondary: Colors.white,
+      ),
+    ];
+  }
+
+  String _getAppBarTitle(int index) {
+    switch (index) {
+      case 1:
+        return 'Escanear Producto';
+      case 2:
+        return 'Mi Cuenta';
+      default:
+        return 'ChileHalal';
+    }
   }
 
   @override
@@ -29,13 +67,13 @@ class _MainWrapperState extends State<MainWrapper> {
 
     return Scaffold(
       appBar: AppBar(
-        title: _selectedIndex == 0
+        title: _currentIndex == 0
             ? Image.asset(
                 'assets/images/chilehalal-isotipo.png',
                 height: 40,
                 fit: BoxFit.contain,
               )
-            : const Text('Escanear Producto'),
+            : Text(_getAppBarTitle(_currentIndex)),
         backgroundColor: colorScheme.surface,
         centerTitle: true,
         elevation: 0,
@@ -47,25 +85,25 @@ class _MainWrapperState extends State<MainWrapper> {
           ),
         ),
       ),
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _screens,
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        selectedItemColor: colorScheme.primary,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Inicio',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.qr_code_scanner),
-            label: 'Escanear',
-          ),
-        ],
+      body: PersistentTabView(
+        context,
+        controller: _controller,
+        screens: _buildScreens(),
+        items: _navBarsItems(colorScheme),
+        backgroundColor: colorScheme.surface,
+        handleAndroidBackButtonPress: true,
+        resizeToAvoidBottomInset: true,
+        stateManagement: true, 
+        decoration: NavBarDecoration(
+          borderRadius: BorderRadius.circular(10.0),
+          colorBehindNavBar: colorScheme.surface,
+        ),
+        navBarStyle: NavBarStyle.style7,
+        onItemSelected: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
       ),
     );
   }
