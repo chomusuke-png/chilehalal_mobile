@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:chilehalal_mobile/services/auth_service.dart';
+import 'package:chilehalal_mobile/screens/auth/login_screen.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -11,14 +12,9 @@ class AccountScreen extends StatefulWidget {
 class _AccountScreenState extends State<AccountScreen> {
   final AuthService _authService = AuthService();
   
-  // Estado
   bool _isLoading = true;
   bool _isLoggedIn = false;
   Map<String, dynamic>? _userData;
-
-  // Formulario
-  final TextEditingController _emailCtrl = TextEditingController();
-  final TextEditingController _passCtrl = TextEditingController();
 
   @override
   void initState() {
@@ -26,7 +22,7 @@ class _AccountScreenState extends State<AccountScreen> {
     _checkSession();
   }
 
-  // Verificar si ya hay sesión al iniciar
+  // Esta función refresca el estado general
   Future<void> _checkSession() async {
     final logged = await _authService.isLoggedIn();
     if (logged) {
@@ -37,166 +33,75 @@ class _AccountScreenState extends State<AccountScreen> {
         _isLoading = false;
       });
     } else {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _handleLogin() async {
-    if (_emailCtrl.text.isEmpty || _passCtrl.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor ingresa email y contraseña')),
-      );
-      return;
-    }
-
-    setState(() => _isLoading = true); // Mostrar carga
-
-    final result = await _authService.login(_emailCtrl.text, _passCtrl.text);
-
-    setState(() => _isLoading = false); // Ocultar carga
-
-    if (result['success']) {
       setState(() {
-        _isLoggedIn = true;
-        _userData = result['data'];
+        _isLoggedIn = false;
+        _userData = null;
+        _isLoading = false;
       });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('¡Bienvenido ${_userData?['name']}!')),
-        );
-      }
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message']),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
     }
   }
 
   Future<void> _handleLogout() async {
     await _authService.logout();
-    setState(() {
-      _isLoggedIn = false;
-      _userData = null;
-      _emailCtrl.clear();
-      _passCtrl.clear();
-    });
+    _checkSession(); // Recargamos para volver al login
   }
 
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    // --- AQUÍ OCURRE LA MAGIA ---
+    if (!_isLoggedIn) {
+      // Si NO está logueado, le mostramos el LoginScreen
+      // Le pasamos _checkSession como callback para que cuando termine de loguearse,
+      // esta pantalla se entere y se actualice sola.
+      return LoginScreen(onLoginSuccess: _checkSession);
+    }
+
+    // Si SÍ está logueado, mostramos el Perfil
     return Scaffold(
-      backgroundColor: Colors.grey[50], // Fondo suave
-      body: _isLoggedIn ? _buildProfileView() : _buildLoginView(),
-    );
-  }
-
-  // VISTA 1: Perfil del Usuario
-  Widget _buildProfileView() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const CircleAvatar(
-            radius: 50,
-            backgroundColor: Colors.green,
-            child: Icon(Icons.person, size: 50, color: Colors.white),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            _userData?['name'] ?? 'Usuario',
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          Text(
-            _userData?['email'] ?? '',
-            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-          ),
-          const SizedBox(height: 10),
-          Chip(
-            label: Text('Puntos: ${_userData?['points'] ?? 0}'),
-            backgroundColor: Colors.amber[100],
-            avatar: const Icon(Icons.star, size: 18, color: Colors.orange),
-          ),
-          const SizedBox(height: 40),
-          ElevatedButton.icon(
-            onPressed: _handleLogout,
-            icon: const Icon(Icons.logout),
-            label: const Text('Cerrar Sesión'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red[50],
-              foregroundColor: Colors.red,
-              elevation: 0,
+      backgroundColor: Colors.grey[50],
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const CircleAvatar(
+              radius: 60,
+              backgroundColor: Colors.green,
+              child: Icon(Icons.person, size: 60, color: Colors.white),
             ),
-          )
-        ],
-      ),
-    );
-  }
-
-  // VISTA 2: Formulario de Login
-  Widget _buildLoginView() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(30.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SizedBox(height: 40),
-          // Logo o Icono
-          Image.asset(
-            'assets/images/chilehalal-logo.png', // Asegúrate de tener este asset o usa un Icono
-            height: 100,
-            errorBuilder: (c, e, s) => const Icon(Icons.lock, size: 80, color: Colors.grey),
-          ),
-          const SizedBox(height: 40),
-          const Text(
-            'Iniciar Sesión',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 30),
-          
-          // Campos
-          TextField(
-            controller: _emailCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Correo Electrónico',
-              prefixIcon: Icon(Icons.email_outlined),
-              border: OutlineInputBorder(),
+            const SizedBox(height: 20),
+            Text(
+              _userData?['name'] ?? 'Usuario',
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            keyboardType: TextInputType.emailAddress,
-          ),
-          const SizedBox(height: 20),
-          TextField(
-            controller: _passCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Contraseña',
-              prefixIcon: Icon(Icons.lock_outline),
-              border: OutlineInputBorder(),
+            Text(
+              _userData?['email'] ?? '',
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             ),
-            obscureText: true,
-          ),
-          
-          const SizedBox(height: 30),
-          
-          // Botón Login
-          ElevatedButton(
-            onPressed: _handleLogin,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              backgroundColor: Theme.of(context).primaryColor,
-              foregroundColor: Colors.white,
+            const SizedBox(height: 15),
+            Chip(
+              // Mostramos el Rol en lugar de puntos (según tu cambio reciente)
+              label: Text('Rol: ${_userData?['role'] ?? 'user'}'.toUpperCase()),
+              backgroundColor: Colors.amber[100],
+              avatar: const Icon(Icons.verified_user, size: 18, color: Colors.orange),
             ),
-            child: const Text('INGRESAR', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
+            const SizedBox(height: 40),
+            ElevatedButton.icon(
+              onPressed: _handleLogout,
+              icon: const Icon(Icons.logout),
+              label: const Text('Cerrar Sesión'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red[50],
+                foregroundColor: Colors.red,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

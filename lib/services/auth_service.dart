@@ -39,7 +39,38 @@ class AuthService {
     }
   }
 
-  // 2. Obtener Perfil (Ruta Protegida con JWT)
+  // 2. Registrar Usuario (ESTE ES EL QUE FALTABA)
+  Future<Map<String, dynamic>> register(String name, String email, String password) async {
+    final url = Uri.parse('$baseUrl/auth/register');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+          'password': password,
+        }),
+      );
+
+      final body = jsonDecode(response.body);
+
+      // El backend devuelve 201 Created si todo sale bien
+      if (response.statusCode == 201 && body['success'] == true) {
+        return {'success': true, 'message': body['message']};
+      } else {
+        return {
+          'success': false, 
+          'message': body['message'] ?? 'Error al registrar'
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Error de conexión: $e'};
+    }
+  }
+
+  // 3. Obtener Perfil (Ruta Protegida con JWT)
   Future<Map<String, dynamic>?> getUserProfile() async {
     final token = await getToken();
     if (token == null) return null;
@@ -79,7 +110,7 @@ class AuthService {
     return prefs.getString(_tokenKey);
   }
   
-  // Recuperar nombre del usuario guardado localmente (para mostrar rápido)
+  // Recuperar datos del usuario guardado localmente
   Future<Map<String, dynamic>?> getLocalUser() async {
     final prefs = await SharedPreferences.getInstance();
     final userStr = prefs.getString(_userKey);
