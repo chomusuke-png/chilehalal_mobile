@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:chilehalal_mobile/widgets/scanner/scanner_widget.dart';
+import 'package:chilehalal_mobile/screens/scanner/product_screen.dart';
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
@@ -9,16 +10,23 @@ class ScannerScreen extends StatefulWidget {
 }
 
 class _ScannerScreenState extends State<ScannerScreen> {
-  String? _lastScannedCode;
+  bool _isProcessing = false; // Candado para evitar múltiples navegaciones
 
   void _handleCodeDetected(String code) {
-    setState(() {
-      _lastScannedCode = code;
+    if (_isProcessing) return; // Si ya estamos procesando, ignoramos
+
+    setState(() => _isProcessing = true);
+
+    // Navegamos a la pantalla de detalle
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProductScreen(barcode: code),
+      ),
+    ).then((_) {
+      // Cuando el usuario vuelva (haga "Atrás"), desbloqueamos para escanear de nuevo
+      setState(() => _isProcessing = false);
     });
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Código detectado: $code')),
-    );
   }
 
   @override
@@ -28,22 +36,23 @@ class _ScannerScreenState extends State<ScannerScreen> {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       body: Center(
-        child: SingleChildScrollView(
+        child: SingleChildScrollView( // Para evitar overflow en pantallas chicas
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                _lastScannedCode == null 
-                    ? 'Apunte la cámara a un código' 
-                    : 'Último código: $_lastScannedCode',
+                'Escanear Producto',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 24,
                   color: colorScheme.onSurface,
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              const SizedBox(height: 10),
+              const Text('Coloca el código de barras en el cuadro'),
               const SizedBox(height: 30),
               
+              // Contenedor de la cámara
               Container(
                 width: 280,
                 height: 280,
@@ -57,19 +66,21 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     ),
                   ],
                 ),
+                // Pasamos nuestra función protegida al widget
                 child: ScannerWidget(
                   onDetect: _handleCodeDetected,
                 ),
               ),
               
-              const SizedBox(height: 20),
-              Text(
-                'Buscando productos Halal...',
-                style: TextStyle(
-                  color: colorScheme.secondary,
-                  fontSize: 14,
+              const SizedBox(height: 30),
+              
+              if (_isProcessing)
+                const CircularProgressIndicator()
+              else
+                Text(
+                  'Buscando productos Halal...',
+                  style: TextStyle(color: colorScheme.secondary),
                 ),
-              ),
             ],
           ),
         ),
