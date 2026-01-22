@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:chilehalal_mobile/screens/home/home_screen.dart';
+import 'package:chilehalal_mobile/screens/catalog/catalog_screen.dart';
 import 'package:chilehalal_mobile/screens/scanner/scanner_screen.dart';
 import 'package:chilehalal_mobile/screens/auth/account_screen.dart';
 import 'package:chilehalal_mobile/widgets/layout/main_app_bar.dart';
@@ -21,6 +22,7 @@ class _MainWrapperState extends State<MainWrapper> {
   List<Widget> _buildScreens() {
     return const [
       HomeScreen(),
+      CatalogScreen(),
       ScannerScreen(),
       AccountScreen(),
     ];
@@ -31,6 +33,13 @@ class _MainWrapperState extends State<MainWrapper> {
       PersistentBottomNavBarItem(
         icon: const FaIcon(FontAwesomeIcons.house),
         title: "Inicio",
+        activeColorPrimary: colorScheme.primary,
+        inactiveColorPrimary: Colors.grey,
+        activeColorSecondary: Colors.white,
+      ),
+      PersistentBottomNavBarItem(
+        icon: const FaIcon(FontAwesomeIcons.list),
+        title: "Catálogo",
         activeColorPrimary: colorScheme.primary,
         inactiveColorPrimary: Colors.grey,
         activeColorSecondary: Colors.white,
@@ -55,8 +64,10 @@ class _MainWrapperState extends State<MainWrapper> {
   String _getAppBarTitle(int index) {
     switch (index) {
       case 1:
-        return 'Escanear Producto';
+        return 'Catálogo de Productos';
       case 2:
+        return 'Escanear Producto';
+      case 3:
         return 'Mi Cuenta';
       default:
         return 'ChileHalal';
