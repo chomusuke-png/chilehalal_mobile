@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:chilehalal_mobile/services/product_service.dart';
 
 class ProductScreen extends StatefulWidget {
-  final String barcode;
+  final String? barcode;
+  final Map<String, dynamic>? productData;
 
-  const ProductScreen({super.key, required this.barcode});
+  const ProductScreen({
+    super.key,
+    this.barcode,
+    this.productData,
+  });
 
   @override
   State<ProductScreen> createState() => _ProductScreenState();
@@ -20,11 +25,33 @@ class _ProductScreenState extends State<ProductScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchProduct();
+    _initData();
   }
 
-  Future<void> _fetchProduct() async {
-    final data = await _productService.getProductByBarcode(widget.barcode);
+  void _initData() {
+    // CASO 1: Venimos del Catálogo (Ya tenemos los datos)
+    if (widget.productData != null) {
+      setState(() {
+        _product = widget.productData;
+        _isLoading = false;
+      });
+      return; // No necesitamos buscar en la API
+    }
+
+    // CASO 2: Venimos del Escáner (Solo tenemos el código, hay que buscar)
+    if (widget.barcode != null) {
+      _fetchProduct(widget.barcode!);
+    } else {
+      // Caso de error raro: no se pasó nada
+      setState(() {
+        _isLoading = false;
+        _notFound = true;
+      });
+    }
+  }
+
+  Future<void> _fetchProduct(String code) async {
+    final data = await _productService.getProductByBarcode(code);
     if (mounted) {
       setState(() {
         _isLoading = false;
