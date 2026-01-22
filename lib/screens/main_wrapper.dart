@@ -5,7 +5,6 @@ import 'package:chilehalal_mobile/screens/home/home_screen.dart';
 import 'package:chilehalal_mobile/screens/catalog/catalog_screen.dart';
 import 'package:chilehalal_mobile/screens/scanner/scanner_screen.dart';
 import 'package:chilehalal_mobile/screens/auth/account_screen.dart';
-import 'package:chilehalal_mobile/widgets/layout/main_app_bar.dart';
 
 class MainWrapper extends StatefulWidget {
   const MainWrapper({super.key});
@@ -16,8 +15,6 @@ class MainWrapper extends StatefulWidget {
 
 class _MainWrapperState extends State<MainWrapper> {
   final PersistentTabController _controller = PersistentTabController(initialIndex: 0);
-  
-  int _currentIndex = 0;
 
   List<Widget> _buildScreens() {
     return const [
@@ -61,48 +58,24 @@ class _MainWrapperState extends State<MainWrapper> {
     ];
   }
 
-  String _getAppBarTitle(int index) {
-    switch (index) {
-      case 1:
-        return 'Catálogo de Productos';
-      case 2:
-        return 'Escanear Producto';
-      case 3:
-        return 'Mi Cuenta';
-      default:
-        return 'ChileHalal';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      appBar: MainAppBar(
-        currentIndex: _currentIndex,
-        title: _getAppBarTitle(_currentIndex),
+    return PersistentTabView(
+      context,
+      controller: _controller,
+      screens: _buildScreens(),
+      items: _navBarsItems(colorScheme),
+      backgroundColor: colorScheme.surface,
+      handleAndroidBackButtonPress: true,
+      resizeToAvoidBottomInset: true,
+      stateManagement: true, 
+      decoration: NavBarDecoration(
+        borderRadius: BorderRadius.circular(10.0),
+        colorBehindNavBar: colorScheme.surface,
       ),
-      body: PersistentTabView(
-        context,
-        controller: _controller,
-        screens: _buildScreens(),
-        items: _navBarsItems(colorScheme),
-        backgroundColor: colorScheme.surface,
-        handleAndroidBackButtonPress: true,
-        resizeToAvoidBottomInset: true,
-        stateManagement: true, 
-        decoration: NavBarDecoration(
-          borderRadius: BorderRadius.circular(10.0),
-          colorBehindNavBar: colorScheme.surface,
-        ),
-        navBarStyle: NavBarStyle.style7,
-        onItemSelected: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-      ),
+      navBarStyle: NavBarStyle.style7,
     );
   }
 }

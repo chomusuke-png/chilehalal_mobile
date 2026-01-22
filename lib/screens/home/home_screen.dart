@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:chilehalal_mobile/widgets/common/prayer_countdown.dart'; // Asegúrate de importar la ruta correcta
+import 'package:chilehalal_mobile/widgets/common/prayer_countdown.dart';
+import 'package:chilehalal_mobile/widgets/layout/main_app_bar.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -9,6 +10,10 @@ class HomeScreen extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
+      appBar: const MainAppBar(
+        currentIndex: 0, 
+        title: 'ChileHalal'
+      ),
       backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: Padding(
