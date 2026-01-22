@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:chilehalal_mobile/widgets/scanner/scanner_widget.dart';
-import 'package:chilehalal_mobile/screens/scanner/product_screen.dart';
+import 'package:chilehalal_mobile/screens/product/product_screen.dart';
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
