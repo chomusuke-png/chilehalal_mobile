@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:chilehalal_mobile/config.dart';
+import 'auth_service.dart';
 
 class ProductPaginationResponse {
   final List<dynamic> products;
@@ -14,11 +16,11 @@ class ProductPaginationResponse {
 }
 
 class ProductService {
-  // URL Base (Misma que AuthService)
-  static const String baseUrl = 'https://www.chilehalal.cl/wp-json/chilehalal/v1';
+  final AuthService _authService = AuthService();
 
+  // --- OBTENER LISTADO DE PRODUCTOS ---
   Future<ProductPaginationResponse> getProducts({int page = 1, String search = ''}) async {
-    final uri = Uri.parse('$baseUrl/products').replace(queryParameters: {
+    final uri = Uri.parse('${AppConfig.apiUrl}/products').replace(queryParameters: {
       'page': page.toString(),
       'search': search,
     });
@@ -36,7 +38,6 @@ class ProductService {
           );
         }
       }
-      // Si falla, devolvemos lista vacía
       return ProductPaginationResponse(products: [], totalPages: 1, currentPage: 1);
     } catch (e) {
       print("Error fetching products: $e");
@@ -44,8 +45,9 @@ class ProductService {
     }
   }
 
+  // --- ESCANEAR PRODUCTO ---
   Future<Map<String, dynamic>?> getProductByBarcode(String barcode) async {
-    final url = Uri.parse('$baseUrl/scan/$barcode');
+    final url = Uri.parse('${AppConfig.apiUrl}/scan/$barcode');
 
     try {
       final response = await http.get(url);
@@ -56,10 +58,58 @@ class ProductService {
           return body['data'];
         }
       }
-      return null; // No encontrado o error
-    } catch (e) {
-      print("Error fetching product: $e");
       return null;
+    } catch (e) {
+      print("Error scanning product: $e");
+      return null;
+    }
+  }
+
+  // --- CREAR PRODUCTO ---
+  // Retorna un Map con {success: bool, message: String}
+  Future<Map<String, dynamic>> createProduct({
+    required String name,
+    required String brand,
+    required String barcode,
+    required String isHalal, // 'yes', 'no', 'doubt'
+    List<String>? categories,
+  }) async {
+    
+    // Obtenemos el token guardado
+    final token = await _authService.getToken();
+    if (token == null) {
+      return {'success': false, 'message': 'Sesión expirada. Ingresa nuevamente.'};
+    }
+
+    final url = Uri.parse('${AppConfig.apiUrl}/products');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'name': name,
+          'brand': brand,
+          'barcode': barcode,
+          'is_halal': isHalal,
+          'categories': categories ?? [],
+        }),
+      );
+
+      final body = jsonDecode(response.body);
+
+      if (response.statusCode == 201 && body['success'] == true) {
+        return {'success': true, 'message': body['message']};
+      } else if (response.statusCode == 403) {
+        return {'success': false, 'message': 'No tienes permiso para usar esta marca.'};
+      } else {
+        return {'success': false, 'message': body['message'] ?? 'Error al guardar.'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Error de conexión: $e'};
     }
   }
 }

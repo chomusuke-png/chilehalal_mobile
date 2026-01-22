@@ -1,16 +1,15 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:chilehalal_mobile/config.dart'; 
 
 class AuthService {
-  // URL base de tu API (Apunta a tu WordPress real)
-  static const String baseUrl = 'https://www.chilehalal.cl/wp-json/chilehalal/v1';
   static const String _tokenKey = 'ch_auth_token';
   static const String _userKey = 'ch_user_data';
 
-  // 1. Iniciar Sesión
+  // --- LOGIN ---
   Future<Map<String, dynamic>> login(String email, String password) async {
-    final url = Uri.parse('$baseUrl/auth/login');
+    final url = Uri.parse('${AppConfig.apiUrl}/auth/login');
     
     try {
       final response = await http.post(
@@ -25,7 +24,6 @@ class AuthService {
       final body = jsonDecode(response.body);
 
       if (response.statusCode == 200 && body['success'] == true) {
-        // Guardamos Token y Datos del Usuario
         await _saveSession(body['data']['token'], body['data']);
         return {'success': true, 'data': body['data']};
       } else {
@@ -39,9 +37,9 @@ class AuthService {
     }
   }
 
-  // 2. Registrar Usuario (ESTE ES EL QUE FALTABA)
+  // --- REGISTER ---
   Future<Map<String, dynamic>> register(String name, String email, String password) async {
-    final url = Uri.parse('$baseUrl/auth/register');
+    final url = Uri.parse('${AppConfig.apiUrl}/auth/register');
 
     try {
       final response = await http.post(
@@ -70,31 +68,38 @@ class AuthService {
     }
   }
 
-  // 3. Obtener Perfil (Ruta Protegida con JWT)
+  // --- MOSTRAR PERFIL ---
   Future<Map<String, dynamic>?> getUserProfile() async {
     final token = await getToken();
     if (token == null) return null;
 
-    final url = Uri.parse('$baseUrl/user/me');
+    final url = Uri.parse('${AppConfig.apiUrl}/user/me');
     try {
       final response = await http.get(
         url,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token', // <--- Aquí enviamos el JWT
+          'Authorization': 'Bearer $token',
         },
       );
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        final body = jsonDecode(response.body);
+        return body['data']; 
       } else {
-        // Si el token expiró (401), cerramos sesión localmente
         if (response.statusCode == 401) await logout();
         return null;
       }
     } catch (e) {
       return null;
     }
+  }
+
+  // --- Helpers Críticos para Roles y UI ---
+
+  Future<String?> getRole() async {
+    final user = await getLocalUser();
+    return user?['role'];
   }
 
   // --- Gestión de Sesión Local ---
@@ -122,8 +127,7 @@ class AuthService {
 
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_tokenKey);
-    await prefs.remove(_userKey);
+    await prefs.clear();
   }
 
   Future<bool> isLoggedIn() async {
