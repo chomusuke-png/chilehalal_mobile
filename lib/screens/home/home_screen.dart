@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:chilehalal_mobile/widgets/common/live_clock.dart'; // Asegúrate de importar la ruta correcta
+import 'package:chilehalal_mobile/widgets/common/prayer_countdown.dart'; // Asegúrate de importar la ruta correcta
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -17,7 +17,7 @@ class HomeScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            LiveClock(
+            PrayerCountdown(
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
