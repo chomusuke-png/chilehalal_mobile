@@ -8,6 +8,13 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Extraemos y formateamos las categorías
+    // La API devuelve una lista de Strings en 'categories'
+    final List<dynamic> categoriesList = product['categories'] ?? [];
+    final String categoryText = categoriesList.isNotEmpty
+        ? categoriesList.join(', ')
+        : 'Sin categoría';
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -24,6 +31,7 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // 1. IMAGEN
             Expanded(
               child: product['image_url'] != null
                   ? Image.network(product['image_url'], fit: BoxFit.cover)
@@ -32,18 +40,38 @@ class ProductCard extends StatelessWidget {
                       child: Icon(Icons.image, size: 50, color: Colors.grey[400]),
                     ),
             ),
+            
+            // 2. INFORMACIÓN
             Padding(
               padding: const EdgeInsets.all(10.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Nombre
                   Text(
                     product['name'] ?? 'Sin nombre',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                   ),
+                  
                   const SizedBox(height: 4),
+
+                  // Categoría
+                  Text(
+                    categoryText,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Etiqueta Halal
                   if (product['is_halal'] == true)
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -55,9 +83,9 @@ class ProductCard extends StatelessWidget {
                       child: const Text(
                         'HALAL',
                         style: TextStyle(
-                          fontSize: 9,
-                          color: Colors.green,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 9, 
+                          color: Colors.green, 
+                          fontWeight: FontWeight.bold
                         ),
                       ),
                     ),
