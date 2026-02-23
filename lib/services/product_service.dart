@@ -18,7 +18,6 @@ class ProductPaginationResponse {
 class ProductService {
   final AuthService _authService = AuthService();
 
-  // --- OBTENER LISTADO DE PRODUCTOS ---
   Future<ProductPaginationResponse> getProducts({int page = 1, String search = ''}) async {
     final uri = Uri.parse('${AppConfig.apiUrl}/products').replace(queryParameters: {
       'page': page.toString(),
@@ -27,7 +26,6 @@ class ProductService {
 
     try {
       final response = await http.get(uri);
-
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
         if (body['success'] == true) {
@@ -40,18 +38,30 @@ class ProductService {
       }
       return ProductPaginationResponse(products: [], totalPages: 1, currentPage: 1);
     } catch (e) {
-      print("Error fetching products: $e");
       return ProductPaginationResponse(products: [], totalPages: 1, currentPage: 1);
     }
   }
 
-  // --- ESCANEAR PRODUCTO ---
-  Future<Map<String, dynamic>?> getProductByBarcode(String barcode) async {
-    final url = Uri.parse('${AppConfig.apiUrl}/scan/$barcode');
-
+  Future<List<Map<String, dynamic>>> getCategories() async {
+    final url = Uri.parse('${AppConfig.apiUrl}/categories');
     try {
       final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        if (body['success'] == true) {
+          return List<Map<String, dynamic>>.from(body['data'] ?? []);
+        }
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
 
+  Future<Map<String, dynamic>?> getProductByBarcode(String barcode) async {
+    final url = Uri.parse('${AppConfig.apiUrl}/scan/$barcode');
+    try {
+      final response = await http.get(url);
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
         if (body['success'] == true) {
@@ -60,29 +70,23 @@ class ProductService {
       }
       return null;
     } catch (e) {
-      print("Error scanning product: $e");
       return null;
     }
   }
 
-  // --- CREAR PRODUCTO ---
-  // Retorna un Map con {success: bool, message: String}
   Future<Map<String, dynamic>> createProduct({
     required String name,
     required String brand,
     required String barcode,
-    required String isHalal, // 'yes', 'no', 'doubt'
+    required String isHalal, 
     List<String>? categories,
   }) async {
-    
-    // Obtenemos el token guardado
     final token = await _authService.getToken();
     if (token == null) {
       return {'success': false, 'message': 'Sesión expirada. Ingresa nuevamente.'};
     }
 
     final url = Uri.parse('${AppConfig.apiUrl}/products');
-
     try {
       final response = await http.post(
         url,
@@ -100,7 +104,6 @@ class ProductService {
       );
 
       final body = jsonDecode(response.body);
-
       if (response.statusCode == 201 && body['success'] == true) {
         return {'success': true, 'message': body['message']};
       } else if (response.statusCode == 403) {

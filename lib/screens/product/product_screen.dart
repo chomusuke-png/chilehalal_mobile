@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:chilehalal_mobile/services/product_service.dart';
+import 'package:chilehalal_mobile/services/recent_products_service.dart';
 
 class ProductScreen extends StatefulWidget {
   final String? barcode;
@@ -35,6 +36,8 @@ class _ProductScreenState extends State<ProductScreen> {
         _product = widget.productData;
         _isLoading = false;
       });
+      // GUARDAR EN HISTORIAL: El producto ya viene cargado y es válido
+      RecentProductsService().addProductToRecents(widget.productData!);
       return; // No necesitamos buscar en la API
     }
 
@@ -57,6 +60,8 @@ class _ProductScreenState extends State<ProductScreen> {
         _isLoading = false;
         if (data != null) {
           _product = data;
+          // GUARDAR EN HISTORIAL: La API respondió exitosamente con el producto
+          RecentProductsService().addProductToRecents(data);
         } else {
           _notFound = true;
         }
@@ -108,8 +113,11 @@ class _ProductScreenState extends State<ProductScreen> {
     final name = _product?['name'] ?? 'Sin Nombre';
     final brand = _product?['brand'] ?? 'Marca desconocida';
     final description = _product?['description'] ?? '';
-    final isHalal = _product?['is_halal'] == true;
+    final isHalal = _product?['is_halal'] == true || _product?['is_halal'] == 'yes';
     final imageUrl = _product?['image_url'];
+    
+    // Lista de categorías
+    final List<dynamic> categoriesList = _product?['categories'] ?? [];
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -126,7 +134,7 @@ class _ProductScreenState extends State<ProductScreen> {
                 BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 5))
               ],
             ),
-            child: imageUrl != null 
+            child: imageUrl != null && imageUrl.toString().isNotEmpty
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(20),
                     child: Image.network(imageUrl, fit: BoxFit.contain),
@@ -167,17 +175,60 @@ class _ProductScreenState extends State<ProductScreen> {
 
           const SizedBox(height: 30),
 
-          // 3. Textos
+          // 3. Textos Principales
           Text(name, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
           Text(brand, style: TextStyle(fontSize: 18, color: Colors.grey[600], fontWeight: FontWeight.w500)),
+          
+          const SizedBox(height: 12),
+
+          // 4. Categorías en estilo 'Chips'
+          if (categoriesList.isNotEmpty)
+            Wrap(
+              spacing: 8.0,
+              runSpacing: 8.0,
+              children: categoriesList.map((category) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    category.toString(),
+                    style: TextStyle(
+                      color: Theme.of(context).primaryColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                );
+              }).toList(),
+            )
+          else
+            Text(
+              'Sin categoría registrada',
+              style: TextStyle(
+                fontSize: 14, 
+                color: Colors.grey[400], 
+                fontStyle: FontStyle.italic
+              ),
+            ),
           
           const SizedBox(height: 20),
           const Divider(),
           const SizedBox(height: 10),
           
+          // 5. Descripción
           const Text("Descripción / Ingredientes:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 5),
-          Text(description.isNotEmpty ? description : 'No hay descripción disponible.', style: const TextStyle(fontSize: 15, height: 1.5)),
+          Text(
+            description.isNotEmpty ? description : 'No hay descripción disponible.', 
+            style: const TextStyle(fontSize: 15, height: 1.5)
+          ),
         ],
       ),
     );
