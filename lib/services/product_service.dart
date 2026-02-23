@@ -18,11 +18,22 @@ class ProductPaginationResponse {
 class ProductService {
   final AuthService _authService = AuthService();
 
-  Future<ProductPaginationResponse> getProducts({int page = 1, String search = ''}) async {
-    final uri = Uri.parse('${AppConfig.apiUrl}/products').replace(queryParameters: {
+  Future<ProductPaginationResponse> getProducts({
+    int page = 1, 
+    String search = '', 
+    int? categoryId
+  }) async {
+    
+    final queryParams = {
       'page': page.toString(),
       'search': search,
-    });
+    };
+    
+    if (categoryId != null) {
+      queryParams['category_id'] = categoryId.toString();
+    }
+
+    final uri = Uri.parse('${AppConfig.apiUrl}/products').replace(queryParameters: queryParams);
 
     try {
       final response = await http.get(uri);

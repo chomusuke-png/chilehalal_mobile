@@ -7,7 +7,14 @@ import 'package:chilehalal_mobile/widgets/layout/pagination_controls.dart';
 import 'package:chilehalal_mobile/widgets/common/empty_state.dart';
 
 class CatalogScreen extends StatefulWidget {
-  const CatalogScreen({super.key});
+  final int? initialCategoryId;
+  final String? initialCategoryName;
+
+  const CatalogScreen({
+    super.key, 
+    this.initialCategoryId, 
+    this.initialCategoryName
+  });
 
   @override
   State<CatalogScreen> createState() => _CatalogScreenState();
@@ -22,10 +29,15 @@ class _CatalogScreenState extends State<CatalogScreen> {
   int _currentPage = 1;
   int _totalPages = 1;
   String _currentSearch = '';
+  
+  int? _currentCategoryId;
+  String? _currentCategoryName;
 
   @override
   void initState() {
     super.initState();
+    _currentCategoryId = widget.initialCategoryId;
+    _currentCategoryName = widget.initialCategoryName;
     _loadProducts();
   }
 
@@ -43,6 +55,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
     final response = await _productService.getProducts(
       page: page,
       search: _currentSearch,
+      categoryId: _currentCategoryId,
     );
 
     if (mounted) {
@@ -63,7 +76,15 @@ class _CatalogScreenState extends State<CatalogScreen> {
   void _clearSearch() {
     _searchController.clear();
     _onSearchChanged('');
-    setState(() {}); // Forzar rebuild para ocultar icono X
+    setState(() {});
+  }
+
+  void _clearCategoryFilter() {
+    setState(() {
+      _currentCategoryId = null;
+      _currentCategoryName = null;
+    });
+    _loadProducts(page: 1);
   }
 
   @override
@@ -72,11 +93,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      // Sin AppBar, como solicitaste.
       body: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 1. Barra de Búsqueda Modular
             CatalogSearchBar(
               controller: _searchController,
               onSubmitted: _onSearchChanged,
@@ -84,7 +104,24 @@ class _CatalogScreenState extends State<CatalogScreen> {
               hasContent: _currentSearch.isNotEmpty,
             ),
 
-            // 2. Contenido (Carga, Vacío o Grilla)
+            if (_currentCategoryName != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Row(
+                  children: [
+                    const Text('Filtrando por: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                    Chip(
+                      label: Text(_currentCategoryName!),
+                      deleteIcon: const Icon(Icons.close, size: 18),
+                      onDeleted: _clearCategoryFilter,
+                      backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
+                      labelStyle: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold),
+                      side: BorderSide.none,
+                    ),
+                  ],
+                ),
+              ),
+
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
@@ -93,7 +130,6 @@ class _CatalogScreenState extends State<CatalogScreen> {
                       : ProductGrid(products: _products),
             ),
 
-            // 3. Paginación
             if (_products.isNotEmpty)
               PaginationControls(
                 currentPage: _currentPage,
