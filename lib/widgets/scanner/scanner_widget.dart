@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class ScannerWidget extends StatefulWidget {
@@ -52,8 +53,8 @@ class _ScannerWidgetState extends State<ScannerWidget> {
           
           // 3. Icono de escaneo al centro
           Center(
-            child: Icon(
-              Icons.qr_code_scanner,
+            child: FaIcon(
+              FontAwesomeIcons.barcode,
               color: Colors.white.withValues(alpha: 0.3),
               size: 80,
             ),

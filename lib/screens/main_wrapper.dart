@@ -42,7 +42,7 @@ class _MainWrapperState extends State<MainWrapper> {
         activeColorSecondary: Colors.white,
       ),
       PersistentBottomNavBarItem(
-        icon: const FaIcon(FontAwesomeIcons.qrcode),
+        icon: const Icon(Icons.barcode_reader),
         title: "Escanear",
         activeColorPrimary: colorScheme.primary,
         inactiveColorPrimary: Colors.grey,

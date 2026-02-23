@@ -78,7 +78,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 const CircularProgressIndicator()
               else
                 Text(
-                  'Buscando productos Halal...',
+                  'Buscando producto...',
                   style: TextStyle(color: colorScheme.secondary),
                 ),
             ],

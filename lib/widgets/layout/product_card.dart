@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:chilehalal_mobile/screens/product/product_screen.dart';
 
 class ProductCard extends StatelessWidget {
@@ -8,12 +9,26 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Extraemos y formateamos las categorías
-    // La API devuelve una lista de Strings en 'categories'
     final List<dynamic> categoriesList = product['categories'] ?? [];
     final String categoryText = categoriesList.isNotEmpty
         ? categoriesList.join(', ')
         : 'Sin categoría';
+
+    final dynamic rawHalalStatus = product['is_halal'];
+    
+    Color badgeColor = Colors.grey;
+    IconData badgeIcon = FontAwesomeIcons.question;
+
+    if (rawHalalStatus == true || rawHalalStatus == 'yes') {
+      badgeColor = Colors.green;
+      badgeIcon = FontAwesomeIcons.check;
+    } else if (rawHalalStatus == false || rawHalalStatus == 'no') {
+      badgeColor = Colors.red;
+      badgeIcon = FontAwesomeIcons.xmark;
+    } else if (rawHalalStatus == 'doubt') {
+      badgeColor = Colors.orange;
+      badgeIcon = FontAwesomeIcons.exclamation;
+    }
 
     return GestureDetector(
       onTap: () {
@@ -31,23 +46,57 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 1. IMAGEN
             Expanded(
-              child: product['image_url'] != null
-                  ? Image.network(product['image_url'], fit: BoxFit.cover)
-                  : Container(
-                      color: Colors.grey[200],
-                      child: Icon(Icons.image, size: 50, color: Colors.grey[400]),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  product['image_url'] != null && product['image_url'].toString().isNotEmpty
+                      ? Image.network(
+                          product['image_url'], 
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            color: Colors.grey[200],
+                            child: Icon(Icons.broken_image, size: 50, color: Colors.grey[400]),
+                          ),
+                        )
+                      : Container(
+                          color: Colors.grey[200],
+                          child: Icon(Icons.image, size: 50, color: Colors.grey[400]),
+                        ),
+                  
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: badgeColor,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.25),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: FaIcon(
+                        badgeIcon,
+                        size: 14,
+                        color: Colors.white,
+                      ),
                     ),
+                  ),
+                ],
+              ),
             ),
             
-            // 2. INFORMACIÓN
             Padding(
               padding: const EdgeInsets.all(10.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Nombre
                   Text(
                     product['name'] ?? 'Sin nombre',
                     maxLines: 2,
@@ -57,7 +106,6 @@ class ProductCard extends StatelessWidget {
                   
                   const SizedBox(height: 4),
 
-                  // Categoría
                   Text(
                     categoryText,
                     maxLines: 1,
@@ -68,27 +116,6 @@ class ProductCard extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-
-                  const SizedBox(height: 8),
-
-                  // Etiqueta Halal
-                  if (product['is_halal'] == true)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: Colors.green, width: 0.5),
-                      ),
-                      child: const Text(
-                        'HALAL',
-                        style: TextStyle(
-                          fontSize: 9, 
-                          color: Colors.green, 
-                          fontWeight: FontWeight.bold
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),
