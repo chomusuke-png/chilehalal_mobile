@@ -15,16 +15,12 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
   final _formKey = GlobalKey<FormState>();
   final ProductService _productService = ProductService();
   final AuthService _authService = AuthService();
-
-  // Controladores
   final TextEditingController _nameCtrl = TextEditingController();
   final TextEditingController _brandCtrl = TextEditingController();
   final TextEditingController _barcodeCtrl = TextEditingController();
   
-  String _selectedStatus = 'doubt'; // Valor por defecto (Dudoso)
+  String _selectedStatus = 'doubt';
   bool _isLoading = false;
-  
-  // Para lógica de Partner
   bool _isPartner = false;
   List<dynamic> _myBrands = [];
 
@@ -44,12 +40,9 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
     if (role == 'partner') {
       setState(() {
         _isPartner = true;
-        // Asumimos que guardaste las marcas en el login, si no, las pedimos al perfil
-        // Si el login no devolvió marcas, podríamos llamar a getUserProfile() aquí.
         _myBrands = user?['brands'] ?? []; 
       });
       
-      // Si solo tiene una marca, la pre-llenamos y bloqueamos el campo
       if (_myBrands.length == 1) {
         _brandCtrl.text = _myBrands[0];
       }
@@ -66,7 +59,6 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
       brand: _brandCtrl.text,
       barcode: _barcodeCtrl.text,
       isHalal: _selectedStatus,
-      // categories: [], // Implementar selector de categorías a futuro
     );
 
     setState(() => _isLoading = false);
@@ -76,7 +68,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('✅ Producto creado exitosamente'), backgroundColor: Colors.green),
         );
-        Navigator.pop(context); // Volver atrás
+        Navigator.pop(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result['message'] ?? 'Error al guardar'), backgroundColor: Colors.red),
@@ -104,21 +96,18 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
               ),
               const SizedBox(height: 15),
 
-              // MARCA (Con lógica de bloqueo para Partner)
               TextFormField(
                 controller: _brandCtrl,
                 decoration: InputDecoration(
                   labelText: 'Marca / Empresa', 
                   border: const OutlineInputBorder(),
-                  // Si es partner y tiene 1 marca, deshabilitamos o mostramos helper
                   helperText: _isPartner ? 'Tu cuenta está asociada a esta marca.' : null,
                 ),
-                readOnly: _isPartner && _myBrands.isNotEmpty, // Solo lectura si es partner estricto
+                readOnly: _isPartner && _myBrands.isNotEmpty,
                 validator: (v) => v!.isEmpty ? 'Requerido' : null,
               ),
               const SizedBox(height: 15),
 
-              // BARCODE
               TextFormField(
                 controller: _barcodeCtrl,
                 decoration: const InputDecoration(
@@ -131,7 +120,6 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
               ),
               const SizedBox(height: 15),
 
-              // ESTADO HALAL
               DropdownButtonFormField<String>(
                 initialValue: _selectedStatus,
                 decoration: const InputDecoration(labelText: 'Estado de Certificación', border: OutlineInputBorder()),
@@ -144,7 +132,6 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
               ),
               const SizedBox(height: 30),
 
-              // BOTÓN GUARDAR
               ElevatedButton(
                 onPressed: _isLoading ? null : _submitProduct,
                 style: ElevatedButton.styleFrom(

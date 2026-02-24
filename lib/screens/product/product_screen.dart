@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:chilehalal_mobile/services/product_service.dart';
 import 'package:chilehalal_mobile/services/recent_products_service.dart';
-import 'package:chilehalal_mobile/services/favorite_service.dart'; // IMPORT AGREGADO
+import 'package:chilehalal_mobile/services/favorite_service.dart';
 
 class ProductScreen extends StatefulWidget {
   final String? barcode;
@@ -24,8 +24,6 @@ class _ProductScreenState extends State<ProductScreen> {
   bool _isLoading = true;
   Map<String, dynamic>? _product;
   bool _notFound = false;
-  
-  // Estado para el botón de favoritos
   bool _isFavorite = false;
   bool _isCheckingFavorite = false;
 
@@ -72,7 +70,6 @@ class _ProductScreenState extends State<ProductScreen> {
     }
   }
 
-  // --- LÓGICA DE FAVORITOS ---
   Future<void> _checkFavoriteStatus(dynamic productId) async {
     if (productId == null) return;
     
@@ -90,12 +87,10 @@ class _ProductScreenState extends State<ProductScreen> {
   Future<void> _toggleFavorite() async {
     if (_product == null || _product!['id'] == null) return;
     
-    // Feedback optimista (cambia el color instantáneamente antes de que el servidor responda)
     setState(() => _isFavorite = !_isFavorite);
     
     final newStatus = await _favoriteService.toggleFavorite(_product!['id']);
     
-    // Corrección en caso de que el servidor falle
     if (mounted) {
       setState(() => _isFavorite = newStatus);
     }
@@ -110,7 +105,6 @@ class _ProductScreenState extends State<ProductScreen> {
         elevation: 0,
         foregroundColor: Colors.black,
         actions: [
-          // Renderiza el botón solo si el producto se cargó correctamente
           if (_product != null && _product!['id'] != null)
             _isCheckingFavorite 
               ? const Padding(

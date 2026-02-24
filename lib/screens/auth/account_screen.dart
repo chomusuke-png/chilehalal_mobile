@@ -22,7 +22,6 @@ class _AccountScreenState extends State<AccountScreen> {
     _checkSession();
   }
 
-  // Esta función refresca el estado general
   Future<void> _checkSession() async {
     final logged = await _authService.isLoggedIn();
     if (logged) {
@@ -43,7 +42,7 @@ class _AccountScreenState extends State<AccountScreen> {
 
   Future<void> _handleLogout() async {
     await _authService.logout();
-    _checkSession(); // Recargamos para volver al login
+    _checkSession();
   }
 
   @override
@@ -52,15 +51,10 @@ class _AccountScreenState extends State<AccountScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    // --- AQUÍ OCURRE LA MAGIA ---
     if (!_isLoggedIn) {
-      // Si NO está logueado, le mostramos el LoginScreen
-      // Le pasamos _checkSession como callback para que cuando termine de loguearse,
-      // esta pantalla se entere y se actualice sola.
       return LoginScreen(onLoginSuccess: _checkSession);
     }
 
-    // Si SÍ está logueado, mostramos el Perfil
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: Center(
@@ -83,7 +77,6 @@ class _AccountScreenState extends State<AccountScreen> {
             ),
             const SizedBox(height: 15),
             Chip(
-              // Mostramos el Rol en lugar de puntos (según tu cambio reciente)
               label: Text('Rol: ${_userData?['role'] ?? 'user'}'.toUpperCase()),
               backgroundColor: Colors.amber[100],
               avatar: const Icon(Icons.verified_user, size: 18, color: Colors.orange),

@@ -14,7 +14,7 @@ class PrayerCountdown extends StatefulWidget {
 
 class _PrayerCountdownState extends State<PrayerCountdown> {
   Timer? _timer;
-  Map<String, String>? _prayerTimes; // Almacena los horarios crudos (HH:mm)
+  Map<String, String>? _prayerTimes;
   
   String _nextPrayerName = 'Cargando...';
   Duration _timeRemaining = Duration.zero;
@@ -33,7 +33,6 @@ class _PrayerCountdownState extends State<PrayerCountdown> {
     super.dispose();
   }
 
-  /// 1. Consumir la API
   Future<void> _fetchPrayerTimes() async {
     const String apiUrl = "https://api.aladhan.com/v1/timingsByCity?city=Santiago&country=Chile&method=3";
     
@@ -46,7 +45,6 @@ class _PrayerCountdownState extends State<PrayerCountdown> {
 
         if (mounted) {
           setState(() {
-            // Guardamos solo los rezos obligatorios
             _prayerTimes = {
               "Fajr": timings['Fajr'],
               "Dhuhr": timings['Dhuhr'],
@@ -56,7 +54,6 @@ class _PrayerCountdownState extends State<PrayerCountdown> {
             };
             _isLoading = false;
           });
-          // Iniciamos el reloj
           _startCountdown();
         }
       } else {
@@ -77,29 +74,23 @@ class _PrayerCountdownState extends State<PrayerCountdown> {
     }
   }
 
-  /// 2. Lógica del Temporizador
   void _startCountdown() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _calculateNextPrayer();
     });
-    // Ejecutar inmediatamente la primera vez
     _calculateNextPrayer();
   }
 
-  /// 3. Calcular cuál es el siguiente rezo y cuánto falta
   void _calculateNextPrayer() {
     if (_prayerTimes == null) return;
 
     final now = DateTime.now();
     DateTime? upcomingPrayerTime;
     String upcomingName = "";
-
-    // Iteramos los rezos para buscar el primero que sea > ahora
-    // El orden del mapa es importante, pero al iterar entries suele respetarse la inserción o usamos una lista definida
     final orderedKeys = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
 
     for (var key in orderedKeys) {
-      final timeStr = _prayerTimes![key]!; // "HH:mm"
+      final timeStr = _prayerTimes![key]!;
       final prayerDate = _parseTime(timeStr, now);
 
       if (prayerDate.isAfter(now)) {
@@ -109,8 +100,6 @@ class _PrayerCountdownState extends State<PrayerCountdown> {
       }
     }
 
-    // Si no encontramos ninguno (ej: son las 23:00 y el último fue Isha a las 21:30)
-    // Entonces el siguiente es Fajr de MAÑANA.
     if (upcomingPrayerTime == null) {
       upcomingName = "Fajr";
       final fajrToday = _parseTime(_prayerTimes!["Fajr"]!, now);
@@ -125,9 +114,7 @@ class _PrayerCountdownState extends State<PrayerCountdown> {
     }
   }
 
-  /// Helper para convertir "18:43" string a un DateTime de HOY
   DateTime _parseTime(String timeString, DateTime now) {
-    // La API a veces devuelve "05:43 (CLT)", limpiamos por si acaso
     final cleanTime = timeString.split(' ')[0]; 
     final parts = cleanTime.split(':');
     final hour = int.parse(parts[0]);
@@ -166,7 +153,6 @@ class _PrayerCountdownState extends State<PrayerCountdown> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Texto pequeño arriba
         Text(
           'Próxima oración: $_nextPrayerName',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -175,13 +161,12 @@ class _PrayerCountdownState extends State<PrayerCountdown> {
               ),
         ),
         const SizedBox(height: 5),
-        // Reloj grande
         Text(
           _formatDuration(_timeRemaining),
           style: widget.style ??
               Theme.of(context).textTheme.displayMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    fontFeatures: [const FontFeature.tabularFigures()], // Evita saltos visuales
+                    fontFeatures: [const FontFeature.tabularFigures()],
                   ),
         ),
         Text(

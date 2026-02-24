@@ -24,7 +24,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     setState(() => _isLoading = true);
 
-    // Llamamos al servicio de registro
     final result = await _authService.register(
       _nameCtrl.text,
       _emailCtrl.text,
@@ -38,7 +37,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result['message'] ?? 'Cuenta creada. Ahora inicia sesión.')),
         );
-        // Volvemos atrás (al Login)
         Navigator.pop(context);
       }
     } else {

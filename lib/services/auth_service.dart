@@ -7,7 +7,6 @@ class AuthService {
   static const String _tokenKey = 'ch_auth_token';
   static const String _userKey = 'ch_user_data';
 
-  // --- LOGIN ---
   Future<Map<String, dynamic>> login(String email, String password) async {
     final url = Uri.parse('${AppConfig.apiUrl}/auth/login');
     
@@ -37,7 +36,6 @@ class AuthService {
     }
   }
 
-  // --- REGISTER ---
   Future<Map<String, dynamic>> register(String name, String email, String password) async {
     final url = Uri.parse('${AppConfig.apiUrl}/auth/register');
 
@@ -54,7 +52,6 @@ class AuthService {
 
       final body = jsonDecode(response.body);
 
-      // El backend devuelve 201 Created si todo sale bien
       if (response.statusCode == 201 && body['success'] == true) {
         return {'success': true, 'message': body['message']};
       } else {
@@ -68,7 +65,6 @@ class AuthService {
     }
   }
 
-  // --- MOSTRAR PERFIL ---
   Future<Map<String, dynamic>?> getUserProfile() async {
     final token = await getToken();
     if (token == null) return null;
@@ -95,14 +91,10 @@ class AuthService {
     }
   }
 
-  // --- Helpers Críticos para Roles y UI ---
-
   Future<String?> getRole() async {
     final user = await getLocalUser();
     return user?['role'];
   }
-
-  // --- Gestión de Sesión Local ---
 
   Future<void> _saveSession(String token, Map<String, dynamic> userData) async {
     final prefs = await SharedPreferences.getInstance();
@@ -115,7 +107,6 @@ class AuthService {
     return prefs.getString(_tokenKey);
   }
   
-  // Recuperar datos del usuario guardado localmente
   Future<Map<String, dynamic>?> getLocalUser() async {
     final prefs = await SharedPreferences.getInstance();
     final userStr = prefs.getString(_userKey);

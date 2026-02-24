@@ -15,7 +15,6 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return AppBar(
-      // Lógica visual encapsulada:
       title: currentIndex == 0
           ? Image.asset(
               'assets/images/chilehalal-isotipo.png',
@@ -25,7 +24,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
           : Text(
               title,
               style: TextStyle(
-                color: colorScheme.onSurface, // Aseguramos contraste
+                color: colorScheme.onSurface,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -33,7 +32,6 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: colorScheme.surface,
       centerTitle: true,
       elevation: 0,
-      // La línea roja decorativa inferior
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(2.0),
         child: Container(
@@ -44,7 +42,6 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  // Esto es obligatorio para que el Scaffold sepa qué altura reservar
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight + 2.0);
 }
