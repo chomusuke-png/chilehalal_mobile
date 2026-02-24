@@ -11,22 +11,60 @@ class ScannerWidget extends StatefulWidget {
   });
 
   @override
-  State<ScannerWidget> createState() => _ScannerWidgetState();
+  State<ScannerWidget> createState() => ScannerWidgetState();
 }
 
-class _ScannerWidgetState extends State<ScannerWidget> {
+class ScannerWidgetState extends State<ScannerWidget> with WidgetsBindingObserver {
   final MobileScannerController _controller = MobileScannerController(
     detectionSpeed: DetectionSpeed.noDuplicates,
     returnImage: false,
+    autoStart: true,
   );
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void pauseScanner() {
+    _controller.stop();
+  }
+
+  void resumeScanner() {
+    _controller.start();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    switch (state) {
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.inactive:
+        _controller.stop();
+        break;
+      case AppLifecycleState.resumed:
+        _controller.start();
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(16), // Bordes redondeados para que se vea moderno
+      borderRadius: BorderRadius.circular(16),
       child: Stack(
+        fit: StackFit.expand,
         children: [
-          // 1. La cámara en sí
           MobileScanner(
             controller: _controller,
             onDetect: (capture) {
@@ -34,13 +72,12 @@ class _ScannerWidgetState extends State<ScannerWidget> {
               for (final barcode in barcodes) {
                 if (barcode.rawValue != null) {
                   widget.onDetect(barcode.rawValue!);
-                  break; // Solo procesamos el primero que encuentre
+                  break;
                 }
               }
             },
           ),
           
-          // 2. Un overlay visual (opcional) para guiar al usuario
           Container(
             decoration: BoxDecoration(
               border: Border.all(
@@ -51,7 +88,6 @@ class _ScannerWidgetState extends State<ScannerWidget> {
             ),
           ),
           
-          // 3. Icono de escaneo al centro
           Center(
             child: FaIcon(
               FontAwesomeIcons.barcode,
@@ -62,11 +98,5 @@ class _ScannerWidgetState extends State<ScannerWidget> {
         ],
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 }
