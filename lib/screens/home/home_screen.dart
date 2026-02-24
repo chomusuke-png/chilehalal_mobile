@@ -80,11 +80,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 30),
                       
                       Text(
-                        'Bienvenido $_userName a ChileHalal',
+                        'Bienvenido, $_userName',
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontSize: 26,
-                          fontWeight: FontWeight.w600,
                         ),
                       ),
 

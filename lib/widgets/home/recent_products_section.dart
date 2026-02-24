@@ -15,7 +15,7 @@ class RecentProductsSection extends StatelessWidget {
       children: [
         const Text(
           'Vistos Recientemente',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 18),
         ),
         const SizedBox(height: 16),
         SizedBox(

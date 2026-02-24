@@ -25,7 +25,11 @@ class _CatalogScreenState extends State<CatalogScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   List<dynamic> _products = [];
-  bool _isLoading = false;
+  List<Map<String, dynamic>> _categories = [];
+  
+  bool _isLoadingProducts = false;
+  bool _isLoadingCategories = true;
+  
   int _currentPage = 1;
   int _totalPages = 1;
   String _currentSearch = '';
@@ -38,6 +42,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
     super.initState();
     _currentCategoryId = widget.initialCategoryId;
     _currentCategoryName = widget.initialCategoryName;
+    
+    _loadCategories();
     _loadProducts();
   }
 
@@ -47,9 +53,19 @@ class _CatalogScreenState extends State<CatalogScreen> {
     super.dispose();
   }
 
+  Future<void> _loadCategories() async {
+    final categories = await _productService.getCategories();
+    if (mounted) {
+      setState(() {
+        _categories = categories;
+        _isLoadingCategories = false;
+      });
+    }
+  }
+
   Future<void> _loadProducts({int page = 1}) async {
     setState(() {
-      _isLoading = true;
+      _isLoadingProducts = true;
     });
 
     final response = await _productService.getProducts(
@@ -63,7 +79,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
         _products = response.products;
         _totalPages = response.totalPages;
         _currentPage = response.currentPage;
-        _isLoading = false;
+        _isLoadingProducts = false;
       });
     }
   }
@@ -79,11 +95,14 @@ class _CatalogScreenState extends State<CatalogScreen> {
     setState(() {});
   }
 
-  void _clearCategoryFilter() {
+  void _onCategorySelected(int? categoryId, String? categoryName) {
+    if (_currentCategoryId == categoryId) return;
+
     setState(() {
-      _currentCategoryId = null;
-      _currentCategoryName = null;
+      _currentCategoryId = categoryId;
+      _currentCategoryName = categoryName;
     });
+    
     _loadProducts(page: 1);
   }
 
@@ -104,26 +123,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
               hasContent: _currentSearch.isNotEmpty,
             ),
 
-            if (_currentCategoryName != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: Row(
-                  children: [
-                    const Text('Filtrando por: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                    Chip(
-                      label: Text(_currentCategoryName!),
-                      deleteIcon: const Icon(Icons.close, size: 18),
-                      onDeleted: _clearCategoryFilter,
-                      backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
-                      labelStyle: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold),
-                      side: BorderSide.none,
-                    ),
-                  ],
-                ),
-              ),
+            _buildCategoryFilters(colorScheme),
 
             Expanded(
-              child: _isLoading
+              child: _isLoadingProducts
                   ? const Center(child: CircularProgressIndicator())
                   : _products.isEmpty
                       ? const EmptyState(message: 'No se encontraron productos')
@@ -138,6 +141,65 @@ class _CatalogScreenState extends State<CatalogScreen> {
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryFilters(ColorScheme colorScheme) {
+    if (_isLoadingCategories) {
+      return const SizedBox(
+        height: 50,
+        child: Center(child: SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))),
+      );
+    }
+
+    if (_categories.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return SizedBox(
+      height: 60,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        itemCount: _categories.length + 1,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            final isSelected = _currentCategoryId == null;
+            return Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: ChoiceChip(
+                label: const Text('Todos', style: TextStyle(fontWeight: FontWeight.bold)),
+                selected: isSelected,
+                selectedColor: colorScheme.primary.withValues(alpha: 0.2),
+                checkmarkColor: colorScheme.primary,
+                onSelected: (bool selected) {
+                  if (selected) _onCategorySelected(null, null);
+                },
+              ),
+            );
+          }
+
+          final category = _categories[index - 1];
+          final isSelected = _currentCategoryId == category['id'];
+
+          return Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: ChoiceChip(
+              label: Text(category['name'] ?? ''),
+              selected: isSelected,
+              selectedColor: colorScheme.primary.withValues(alpha: 0.2),
+              checkmarkColor: colorScheme.primary,
+              onSelected: (bool selected) {
+                if (selected) {
+                  _onCategorySelected(category['id'], category['name']);
+                } else {
+                  _onCategorySelected(null, null);
+                }
+              },
+            ),
+          );
+        },
       ),
     );
   }

@@ -17,13 +17,15 @@ class CategoryGridSection extends StatelessWidget {
       children: [
         const Text(
           'Explorar Categorías',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 18),
         ),
         const SizedBox(height: 16),
         Wrap(
           spacing: 12.0,
           runSpacing: 12.0,
           children: categories.map((category) {
+            final String? imageUrl = category['image_url'];
+
             return GestureDetector(
               onTap: () {
                 Navigator.push(
@@ -37,37 +39,68 @@ class CategoryGridSection extends StatelessWidget {
                 );
               },
               child: Container(
-                width: (MediaQuery.of(context).size.width - 60) / 2, // 2 columnas adaptables
-                padding: const EdgeInsets.all(16),
+                width: (MediaQuery.of(context).size.width - 60) / 2,
+                height: 110,
                 decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 5,
                       offset: const Offset(0, 2),
                     )
                   ],
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.category, color: colorScheme.primary, size: 30),
-                    const SizedBox(height: 8),
-                    Text(
-                      category['name'] ?? '',
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${category['count']} productos',
-                      style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
-                    ),
-                  ],
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (imageUrl != null && imageUrl.isNotEmpty)
+                        Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(color: colorScheme.primary);
+                          },
+                        )
+                      else
+                        Container(color: colorScheme.primary),
+
+                      Container(
+                        color: Colors.black.withValues(alpha: 0.45),
+                      ),
+
+                      Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              category['name'] ?? '',
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold, 
+                                fontSize: 15,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${category['count']} productos',
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
