@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:chilehalal_mobile/services/product_service.dart';
 import 'package:chilehalal_mobile/services/recent_products_service.dart';
+import 'package:chilehalal_mobile/services/favorite_service.dart'; // IMPORT AGREGADO
 
 class ProductScreen extends StatefulWidget {
   final String? barcode;
@@ -18,10 +19,15 @@ class ProductScreen extends StatefulWidget {
 
 class _ProductScreenState extends State<ProductScreen> {
   final ProductService _productService = ProductService();
+  final FavoriteService _favoriteService = FavoriteService();
   
   bool _isLoading = true;
   Map<String, dynamic>? _product;
   bool _notFound = false;
+  
+  // Estado para el botón de favoritos
+  bool _isFavorite = false;
+  bool _isCheckingFavorite = false;
 
   @override
   void initState() {
@@ -30,22 +36,19 @@ class _ProductScreenState extends State<ProductScreen> {
   }
 
   void _initData() {
-    // CASO 1: Venimos del Catálogo (Ya tenemos los datos)
     if (widget.productData != null) {
       setState(() {
         _product = widget.productData;
         _isLoading = false;
       });
-      // GUARDAR EN HISTORIAL: El producto ya viene cargado y es válido
       RecentProductsService().addProductToRecents(widget.productData!);
-      return; // No necesitamos buscar en la API
+      _checkFavoriteStatus(widget.productData!['id']);
+      return;
     }
 
-    // CASO 2: Venimos del Escáner (Solo tenemos el código, hay que buscar)
     if (widget.barcode != null) {
       _fetchProduct(widget.barcode!);
     } else {
-      // Caso de error raro: no se pasó nada
       setState(() {
         _isLoading = false;
         _notFound = true;
@@ -60,12 +63,41 @@ class _ProductScreenState extends State<ProductScreen> {
         _isLoading = false;
         if (data != null) {
           _product = data;
-          // GUARDAR EN HISTORIAL: La API respondió exitosamente con el producto
           RecentProductsService().addProductToRecents(data);
+          _checkFavoriteStatus(data['id']);
         } else {
           _notFound = true;
         }
       });
+    }
+  }
+
+  // --- LÓGICA DE FAVORITOS ---
+  Future<void> _checkFavoriteStatus(dynamic productId) async {
+    if (productId == null) return;
+    
+    setState(() => _isCheckingFavorite = true);
+    final isFav = await _favoriteService.checkIsFavorite(productId as int);
+    
+    if (mounted) {
+      setState(() {
+        _isFavorite = isFav;
+        _isCheckingFavorite = false;
+      });
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    if (_product == null || _product!['id'] == null) return;
+    
+    // Feedback optimista (cambia el color instantáneamente antes de que el servidor responda)
+    setState(() => _isFavorite = !_isFavorite);
+    
+    final newStatus = await _favoriteService.toggleFavorite(_product!['id']);
+    
+    // Corrección en caso de que el servidor falle
+    if (mounted) {
+      setState(() => _isFavorite = newStatus);
     }
   }
 
@@ -77,6 +109,23 @@ class _ProductScreenState extends State<ProductScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         foregroundColor: Colors.black,
+        actions: [
+          // Renderiza el botón solo si el producto se cargó correctamente
+          if (_product != null && _product!['id'] != null)
+            _isCheckingFavorite 
+              ? const Padding(
+                  padding: EdgeInsets.only(right: 20.0),
+                  child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
+                )
+              : IconButton(
+                  icon: Icon(
+                    _isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: _isFavorite ? Colors.red : Colors.grey[700],
+                    size: 28,
+                  ),
+                  onPressed: _toggleFavorite,
+                ),
+        ],
       ),
       body: _buildBody(),
     );
@@ -109,14 +158,11 @@ class _ProductScreenState extends State<ProductScreen> {
       );
     }
 
-    // Datos del producto
     final name = _product?['name'] ?? 'Sin Nombre';
     final brand = _product?['brand'] ?? 'Marca desconocida';
     final description = _product?['description'] ?? '';
     final isHalal = _product?['is_halal'] == true || _product?['is_halal'] == 'yes';
     final imageUrl = _product?['image_url'];
-    
-    // Lista de categorías
     final List<dynamic> categoriesList = _product?['categories'] ?? [];
 
     return SingleChildScrollView(
@@ -124,7 +170,6 @@ class _ProductScreenState extends State<ProductScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 1. Imagen del Producto
           Container(
             height: 250,
             decoration: BoxDecoration(
@@ -144,7 +189,6 @@ class _ProductScreenState extends State<ProductScreen> {
           
           const SizedBox(height: 30),
 
-          // 2. Estado Halal (Badge gigante)
           Container(
             padding: const EdgeInsets.symmetric(vertical: 15),
             decoration: BoxDecoration(
@@ -175,13 +219,11 @@ class _ProductScreenState extends State<ProductScreen> {
 
           const SizedBox(height: 30),
 
-          // 3. Textos Principales
           Text(name, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
           Text(brand, style: TextStyle(fontSize: 18, color: Colors.grey[600], fontWeight: FontWeight.w500)),
           
           const SizedBox(height: 12),
 
-          // 4. Categorías en estilo 'Chips'
           if (categoriesList.isNotEmpty)
             Wrap(
               spacing: 8.0,
@@ -222,7 +264,6 @@ class _ProductScreenState extends State<ProductScreen> {
           const Divider(),
           const SizedBox(height: 10),
           
-          // 5. Descripción
           const Text("Descripción / Ingredientes:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 5),
           Text(

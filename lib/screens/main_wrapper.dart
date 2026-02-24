@@ -4,6 +4,7 @@ import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:chilehalal_mobile/screens/home/home_screen.dart';
 import 'package:chilehalal_mobile/screens/catalog/catalog_screen.dart';
 import 'package:chilehalal_mobile/screens/scanner/scanner_screen.dart';
+import 'package:chilehalal_mobile/screens/favorites/favorites_screen.dart';
 import 'package:chilehalal_mobile/screens/auth/account_screen.dart';
 
 class MainWrapper extends StatefulWidget {
@@ -21,6 +22,7 @@ class _MainWrapperState extends State<MainWrapper> {
       HomeScreen(),
       CatalogScreen(),
       ScannerScreen(),
+      FavoritesScreen(),
       AccountScreen(),
     ];
   }
@@ -44,6 +46,13 @@ class _MainWrapperState extends State<MainWrapper> {
       PersistentBottomNavBarItem(
         icon: const Icon(Icons.barcode_reader),
         title: "Escanear",
+        activeColorPrimary: colorScheme.primary,
+        inactiveColorPrimary: Colors.grey,
+        activeColorSecondary: Colors.white,
+      ),
+      PersistentBottomNavBarItem(
+        icon: const FaIcon(FontAwesomeIcons.heart),
+        title: "Favoritos",
         activeColorPrimary: colorScheme.primary,
         inactiveColorPrimary: Colors.grey,
         activeColorSecondary: Colors.white,
