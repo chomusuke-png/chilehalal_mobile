@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:chilehalal_mobile/widgets/scanner/scanner_widget.dart';
 import 'package:chilehalal_mobile/screens/product/product_screen.dart';
+import 'package:chilehalal_mobile/screens/main_wrapper.dart';
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
@@ -11,24 +12,24 @@ class ScannerScreen extends StatefulWidget {
 
 class _ScannerScreenState extends State<ScannerScreen> {
   bool _isProcessing = false;
-  
-  final GlobalKey<ScannerWidgetState> _scannerKey = GlobalKey<ScannerWidgetState>();
 
   void _handleCodeDetected(String code) {
     if (_isProcessing) return;
 
-    setState(() => _isProcessing = true);
-    
-    _scannerKey.currentState?.pauseScanner();
+    setState(() {
+      _isProcessing = true;
+    });
 
-    Navigator.of(context, rootNavigator: true).push(
-      MaterialPageRoute(
-        builder: (context) => ProductScreen(barcode: code),
-      ),
-    ).then((_) {
+    mainWrapperKey.currentState?.jumpToTab(
+      1, 
+      screenToPush: ProductScreen(barcode: code),
+    );
+
+    Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
-        setState(() => _isProcessing = false);
-        _scannerKey.currentState?.resumeScanner();
+        setState(() {
+          _isProcessing = false;
+        });
       }
     });
   }
@@ -61,6 +62,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   width: 280,
                   height: 280,
                   decoration: BoxDecoration(
+                    color: Colors.black,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
@@ -70,10 +72,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       ),
                     ],
                   ),
-                  child: ScannerWidget(
-                    key: _scannerKey,
-                    onDetect: _handleCodeDetected,
-                  ),
+                  child: ScannerWidget(onDetect: _handleCodeDetected),
                 ),
                 
                 const SizedBox(height: 30),

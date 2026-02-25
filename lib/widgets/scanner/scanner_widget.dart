@@ -11,51 +11,20 @@ class ScannerWidget extends StatefulWidget {
   });
 
   @override
-  State<ScannerWidget> createState() => ScannerWidgetState();
+  State<ScannerWidget> createState() => _ScannerWidgetState();
 }
 
-class ScannerWidgetState extends State<ScannerWidget> with WidgetsBindingObserver {
+class _ScannerWidgetState extends State<ScannerWidget> {
   final MobileScannerController _controller = MobileScannerController(
     detectionSpeed: DetectionSpeed.noDuplicates,
     returnImage: false,
-    autoStart: true,
+    autoStart: true, 
   );
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
-  }
-
-  void pauseScanner() {
-    _controller.stop();
-  }
-
-  void resumeScanner() {
-    _controller.start();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    switch (state) {
-      case AppLifecycleState.detached:
-      case AppLifecycleState.hidden:
-      case AppLifecycleState.paused:
-      case AppLifecycleState.inactive:
-        _controller.stop();
-        break;
-      case AppLifecycleState.resumed:
-        _controller.start();
-        break;
-    }
   }
 
   @override
@@ -72,22 +41,17 @@ class ScannerWidgetState extends State<ScannerWidget> with WidgetsBindingObserve
               for (final barcode in barcodes) {
                 if (barcode.rawValue != null) {
                   widget.onDetect(barcode.rawValue!);
-                  break;
+                  break; 
                 }
               }
             },
           ),
-          
           Container(
             decoration: BoxDecoration(
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.5),
-                width: 2,
-              ),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 2),
               borderRadius: BorderRadius.circular(16),
             ),
           ),
-          
           Center(
             child: FaIcon(
               FontAwesomeIcons.barcode,

@@ -37,7 +37,7 @@ class MainApp extends StatelessWidget {
           centerTitle: true,
         ),
       ),
-      home: const MainWrapper(),
+      home: MainWrapper(),
     );
   }
 }

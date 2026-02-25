@@ -7,15 +7,26 @@ import 'package:chilehalal_mobile/screens/scanner/scanner_screen.dart';
 import 'package:chilehalal_mobile/screens/favorites/favorites_screen.dart';
 import 'package:chilehalal_mobile/screens/auth/account_screen.dart';
 
+final GlobalKey<MainWrapperState> mainWrapperKey = GlobalKey<MainWrapperState>();
+
 class MainWrapper extends StatefulWidget {
-  const MainWrapper({super.key});
+  MainWrapper({Key? key}) : super(key: key ?? mainWrapperKey);
 
   @override
-  State<MainWrapper> createState() => _MainWrapperState();
+  State<MainWrapper> createState() => MainWrapperState();
 }
 
-class _MainWrapperState extends State<MainWrapper> {
+class MainWrapperState extends State<MainWrapper> {
   final PersistentTabController _controller = PersistentTabController(initialIndex: 0);
+
+  void jumpToTab(int index, {Widget? screenToPush}) {
+    _controller.jumpToTab(index);
+    if (screenToPush != null && mounted) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        Navigator.of(context).push(MaterialPageRoute(builder: (_) => screenToPush));
+      });
+    }
+  }
 
   List<Widget> _buildScreens() {
     return const [
@@ -51,7 +62,7 @@ class _MainWrapperState extends State<MainWrapper> {
         activeColorSecondary: Colors.white,
       ),
       PersistentBottomNavBarItem(
-        icon: const FaIcon(FontAwesomeIcons.heart),
+        icon: const FaIcon(FontAwesomeIcons.solidHeart),
         title: "Favoritos",
         activeColorPrimary: colorScheme.primary,
         inactiveColorPrimary: Colors.grey,
