@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chilehalal_mobile/screens/catalog/catalog_screen.dart';
 
 class CategoryGridSection extends StatelessWidget {
@@ -57,12 +58,12 @@ class CategoryGridSection extends StatelessWidget {
                     fit: StackFit.expand,
                     children: [
                       if (imageUrl != null && imageUrl.isNotEmpty)
-                        Image.network(
-                          imageUrl,
+                        CachedNetworkImage(
+                          imageUrl: imageUrl,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(color: colorScheme.primary);
-                          },
+                          memCacheWidth: 300,
+                          placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                          errorWidget: (context, url, error) => const Icon(Icons.image_not_supported),
                         )
                       else
                         Container(color: colorScheme.primary),

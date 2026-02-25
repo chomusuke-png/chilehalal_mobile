@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chilehalal_mobile/services/product_service.dart';
 import 'package:chilehalal_mobile/services/recent_products_service.dart';
 import 'package:chilehalal_mobile/services/favorite_service.dart';
@@ -234,7 +235,7 @@ class _ProductScreenState extends State<ProductScreen> {
             child: imageUrl != null && imageUrl.toString().isNotEmpty
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(20),
-                    child: Image.network(imageUrl, fit: BoxFit.contain),
+                    child: CachedNetworkImage(imageUrl: imageUrl, fit: BoxFit.contain),
                   )
                 : const Icon(Icons.image_not_supported, size: 80, color: Colors.grey),
           ),

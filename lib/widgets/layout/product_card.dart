@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chilehalal_mobile/screens/product/product_screen.dart';
 
 class ProductCard extends StatelessWidget {
@@ -51,13 +52,12 @@ class ProductCard extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   product['image_url'] != null && product['image_url'].toString().isNotEmpty
-                      ? Image.network(
-                          product['image_url'], 
+                      ? CachedNetworkImage(
+                          imageUrl: product['image_url'], 
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            color: Colors.grey[200],
-                            child: Icon(Icons.broken_image, size: 50, color: Colors.grey[400]),
-                          ),
+                          memCacheWidth: 300,
+                          placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                          errorWidget: (context, url, error) => const Icon(Icons.image_not_supported),
                         )
                       : Container(
                           color: Colors.grey[200],
