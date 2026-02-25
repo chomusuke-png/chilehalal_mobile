@@ -1,4 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:chilehalal_mobile/services/product_service.dart';
 import 'package:chilehalal_mobile/services/auth_service.dart';
 
@@ -18,11 +21,17 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
   final TextEditingController _nameCtrl = TextEditingController();
   final TextEditingController _brandCtrl = TextEditingController();
   final TextEditingController _barcodeCtrl = TextEditingController();
+  final TextEditingController _descriptionCtrl = TextEditingController();
   
   String _selectedStatus = 'doubt';
   bool _isLoading = false;
   bool _isPartner = false;
+  String? _userRole;
   List<dynamic> _myBrands = [];
+  File? _selectedImage;
+  final ImagePicker _picker = ImagePicker();
+  List<Map<String, dynamic>> _availableCategories = [];
+  final List<int> _selectedCategoryIds = [];
 
   @override
   void initState() {
@@ -30,22 +39,47 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
     if (widget.scannedBarcode != null) {
       _barcodeCtrl.text = widget.scannedBarcode!;
     }
-    _checkPermissions();
+    _loadInitialData();
   }
 
-  Future<void> _checkPermissions() async {
-    final user = await _authService.getLocalUser();
-    final role = user?['role'];
-    
-    if (role == 'partner') {
+  Future<void> _loadInitialData() async {
+    final results = await Future.wait([
+      _authService.getLocalUser(),
+      _productService.getCategories(),
+    ]);
+
+    final user = results[0] as Map<String, dynamic>?;
+    final categories = results[1] as List<Map<String, dynamic>>;
+
+    if (mounted) {
       setState(() {
-        _isPartner = true;
-        _myBrands = user?['brands'] ?? []; 
+        _availableCategories = categories;
+        
+        final role = user?['role'];
+        _userRole = role;
+        
+        if (role == 'partner') {
+          _isPartner = true;
+          _myBrands = user?['brands'] ?? []; 
+        }
       });
       
-      if (_myBrands.length == 1) {
-        _brandCtrl.text = _myBrands[0];
+      if (_isPartner && _myBrands.isNotEmpty) {
+        _brandCtrl.text = _myBrands[0].toString();
       }
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+    );
+    
+    if (image != null) {
+      setState(() {
+        _selectedImage = File(image.path);
+      });
     }
   }
 
@@ -54,11 +88,20 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
 
     setState(() => _isLoading = true);
 
+    String? base64Image;
+    if (_selectedImage != null) {
+      final bytes = await _selectedImage!.readAsBytes();
+      base64Image = base64Encode(bytes);
+    }
+
     final result = await _productService.createProduct(
       name: _nameCtrl.text,
       brand: _brandCtrl.text,
       barcode: _barcodeCtrl.text,
       isHalal: _selectedStatus,
+      description: _descriptionCtrl.text,
+      imageBase64: base64Image,
+      categories: _selectedCategoryIds,
     );
 
     setState(() => _isLoading = false);
@@ -66,7 +109,14 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
     if (mounted) {
       if (result['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('✅ Producto creado exitosamente'), backgroundColor: Colors.green),
+          SnackBar(
+            content: Text(
+              _userRole == 'user' 
+                ? '✅ Solicitud enviada a revisión' 
+                : '✅ Producto creado exitosamente'
+            ), 
+            backgroundColor: Colors.green
+          ),
         );
         Navigator.pop(context);
       } else {
@@ -79,22 +129,82 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isRegularUser = _userRole == 'user';
+    final primaryColor = Theme.of(context).primaryColor;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Nuevo Producto')),
+      appBar: AppBar(
+        title: Text(isRegularUser ? 'Solicitar Producto' : 'Nuevo Producto'),
+        foregroundColor: Colors.black,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // NOMBRE
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: primaryColor.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: primaryColor),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        isRegularUser 
+                          ? 'Ingresa los datos del producto. Nuestro equipo verificará la información antes de publicarlo.'
+                          : 'Agrega un nuevo producto al catálogo oficial.',
+                        style: TextStyle(color: Colors.grey[800], fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              Center(
+                child: GestureDetector(
+                  onTap: _pickImage,
+                  child: Container(
+                    height: 150,
+                    width: 150,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey[400]!),
+                      image: _selectedImage != null
+                          ? DecorationImage(image: FileImage(_selectedImage!), fit: BoxFit.cover)
+                          : null,
+                    ),
+                    child: _selectedImage == null
+                        ? Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.camera_alt, size: 40, color: Colors.grey[600]),
+                              const SizedBox(height: 8),
+                              Text('Añadir Foto', style: TextStyle(color: Colors.grey[600])),
+                            ],
+                          )
+                        : null,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
               TextFormField(
                 controller: _nameCtrl,
                 decoration: const InputDecoration(labelText: 'Nombre del Producto', border: OutlineInputBorder()),
-                validator: (v) => v!.isEmpty ? 'Requerido' : null,
+                validator: (v) => v!.isEmpty ? 'Campo requerido' : null,
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 16),
 
               TextFormField(
                 controller: _brandCtrl,
@@ -104,9 +214,9 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                   helperText: _isPartner ? 'Tu cuenta está asociada a esta marca.' : null,
                 ),
                 readOnly: _isPartner && _myBrands.isNotEmpty,
-                validator: (v) => v!.isEmpty ? 'Requerido' : null,
+                validator: (v) => v!.isEmpty ? 'Campo requerido' : null,
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 16),
 
               TextFormField(
                 controller: _barcodeCtrl,
@@ -116,12 +226,12 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                   suffixIcon: Icon(Icons.qr_code),
                 ),
                 keyboardType: TextInputType.number,
-                validator: (v) => v!.isEmpty ? 'Requerido' : null,
+                validator: (v) => v!.isEmpty ? 'Campo requerido' : null,
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 16),
 
               DropdownButtonFormField<String>(
-                initialValue: _selectedStatus,
+                value: _selectedStatus,
                 decoration: const InputDecoration(labelText: 'Estado de Certificación', border: OutlineInputBorder()),
                 items: const [
                   DropdownMenuItem(value: 'yes', child: Text('✅ Certificado Halal')),
@@ -130,18 +240,62 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                 ],
                 onChanged: (val) => setState(() => _selectedStatus = val!),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 16),
+
+              TextFormField(
+                controller: _descriptionCtrl,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Descripción / Ingredientes (Opcional)', 
+                  border: OutlineInputBorder(),
+                  alignLabelWithHint: true,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              const Text('Categorías', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 12),
+              if (_availableCategories.isEmpty)
+                const Text('Cargando categorías...', style: TextStyle(fontStyle: FontStyle.italic))
+              else
+                Wrap(
+                  spacing: 8.0,
+                  children: _availableCategories.map((cat) {
+                    final isSelected = _selectedCategoryIds.contains(cat['id']);
+                    return FilterChip(
+                      label: Text(cat['name']),
+                      selected: isSelected,
+                      selectedColor: primaryColor.withValues(alpha: 0.2),
+                      checkmarkColor: primaryColor,
+                      onSelected: (bool selected) {
+                        setState(() {
+                          if (selected) {
+                            _selectedCategoryIds.add(cat['id']);
+                          } else {
+                            _selectedCategoryIds.remove(cat['id']);
+                          }
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+
+              const SizedBox(height: 40),
 
               ElevatedButton(
                 onPressed: _isLoading ? null : _submitProduct,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Theme.of(context).primaryColor,
+                  backgroundColor: primaryColor,
                   foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
                 child: _isLoading 
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text('GUARDAR PRODUCTO', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : Text(
+                      isRegularUser ? 'ENVIAR SOLICITUD' : 'GUARDAR PRODUCTO', 
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)
+                    ),
               ),
             ],
           ),

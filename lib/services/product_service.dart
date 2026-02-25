@@ -90,7 +90,9 @@ class ProductService {
     required String brand,
     required String barcode,
     required String isHalal, 
-    List<String>? categories,
+    String? description,
+    String? imageBase64,
+    List<int>? categories,
   }) async {
     final token = await _authService.getToken();
     if (token == null) {
@@ -110,6 +112,8 @@ class ProductService {
           'brand': brand,
           'barcode': barcode,
           'is_halal': isHalal,
+          'description': description,
+          'image_base64': imageBase64,
           'categories': categories ?? [],
         }),
       );
