@@ -17,6 +17,7 @@ class _PrayerCountdownState extends State<PrayerCountdown> {
   Map<String, String>? _prayerTimes;
   
   String _nextPrayerName = 'Cargando...';
+  DateTime? _targetPrayerTime;
   Duration _timeRemaining = Duration.zero;
   bool _isLoading = true;
   bool _hasError = false;
@@ -54,6 +55,8 @@ class _PrayerCountdownState extends State<PrayerCountdown> {
             };
             _isLoading = false;
           });
+          
+          _calculateNextPrayer();
           _startCountdown();
         }
       } else {
@@ -75,41 +78,53 @@ class _PrayerCountdownState extends State<PrayerCountdown> {
   }
 
   void _startCountdown() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      _calculateNextPrayer();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (_targetPrayerTime == null) return;
+
+      final now = DateTime.now();
+      
+      if (now.isAfter(_targetPrayerTime!)) {
+        _calculateNextPrayer();
+      } else {
+        if (mounted) {
+          setState(() {
+            _timeRemaining = _targetPrayerTime!.difference(now);
+          });
+        }
+      }
     });
-    _calculateNextPrayer();
   }
 
   void _calculateNextPrayer() {
     if (_prayerTimes == null) return;
 
     final now = DateTime.now();
-    DateTime? upcomingPrayerTime;
-    String upcomingName = "";
-    final orderedKeys = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
+    final orderedKeys = const ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
 
     for (var key in orderedKeys) {
       final timeStr = _prayerTimes![key]!;
       final prayerDate = _parseTime(timeStr, now);
 
       if (prayerDate.isAfter(now)) {
-        upcomingPrayerTime = prayerDate;
-        upcomingName = key;
-        break; 
+        _targetPrayerTime = prayerDate;
+        _nextPrayerName = key;
+        
+        if (mounted) {
+          setState(() {
+            _timeRemaining = _targetPrayerTime!.difference(now);
+          });
+        }
+        return; 
       }
     }
 
-    if (upcomingPrayerTime == null) {
-      upcomingName = "Fajr";
-      final fajrToday = _parseTime(_prayerTimes!["Fajr"]!, now);
-      upcomingPrayerTime = fajrToday.add(const Duration(days: 1));
-    }
-
+    final fajrToday = _parseTime(_prayerTimes!["Fajr"]!, now);
+    _targetPrayerTime = fajrToday.add(const Duration(days: 1));
+    _nextPrayerName = "Fajr";
+    
     if (mounted) {
       setState(() {
-        _nextPrayerName = upcomingName;
-        _timeRemaining = upcomingPrayerTime!.difference(now);
+        _timeRemaining = _targetPrayerTime!.difference(now);
       });
     }
   }
@@ -166,7 +181,7 @@ class _PrayerCountdownState extends State<PrayerCountdown> {
           style: widget.style ??
               Theme.of(context).textTheme.displayMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    fontFeatures: [const FontFeature.tabularFigures()],
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
         ),
         Text(

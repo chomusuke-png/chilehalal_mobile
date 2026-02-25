@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:chilehalal_mobile/services/auth_service.dart';
 import 'package:chilehalal_mobile/services/product_service.dart';
 import 'package:chilehalal_mobile/services/recent_products_service.dart';
+import 'package:chilehalal_mobile/services/news_service.dart';
 import 'package:chilehalal_mobile/widgets/common/prayer_countdown.dart';
 import 'package:chilehalal_mobile/widgets/layout/main_app_bar.dart';
 import 'package:chilehalal_mobile/widgets/home/recent_products_section.dart';
 import 'package:chilehalal_mobile/widgets/home/category_grid_section.dart';
+import 'package:chilehalal_mobile/widgets/home/news_section.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,11 +20,13 @@ class _HomeScreenState extends State<HomeScreen> {
   final AuthService _authService = AuthService();
   final ProductService _productService = ProductService();
   final RecentProductsService _recentService = RecentProductsService();
+  final NewsService _newsService = NewsService();
 
   bool _isLoading = true;
   String _userName = 'Usuario';
   List<Map<String, dynamic>> _recentProducts = [];
   List<Map<String, dynamic>> _categories = [];
+  List<Map<String, dynamic>> _news = [];
 
   @override
   void initState() {
@@ -35,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _authService.getLocalUser(),
       _recentService.getRecentProducts(),
       _productService.getCategories(),
+      _newsService.getLatestNews(),
     ]);
 
     if (mounted) {
@@ -43,6 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _userName = userData?['name'] ?? 'Usuario';
         _recentProducts = results[1] as List<Map<String, dynamic>>;
         _categories = results[2] as List<Map<String, dynamic>>;
+        _news = results[3] as List<Map<String, dynamic>>;
         _isLoading = false;
       });
     }
@@ -62,7 +68,10 @@ class _HomeScreenState extends State<HomeScreen> {
         child: _isLoading 
             ? const Center(child: CircularProgressIndicator())
             : RefreshIndicator(
-                onRefresh: _loadDashboardData,
+                onRefresh: () async {
+                  NewsService().getLatestNews(); 
+                  await _loadDashboardData();
+                },
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.all(24.0),
@@ -95,6 +104,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 40),
 
                       CategoryGridSection(categories: _categories),
+                      
+                      if (_news.isNotEmpty) ...[
+                        const SizedBox(height: 40),
+                        NewsSection(news: _news),
+                      ],
                       
                       const SizedBox(height: 20),
                     ],
