@@ -18,7 +18,7 @@ class CategoryGridSection extends StatelessWidget {
       children: [
         const Text(
           'Explorar Categorías',
-          style: TextStyle(fontSize: 18),
+          style: TextStyle(fontSize: 20),
         ),
         const SizedBox(height: 16),
         Wrap(

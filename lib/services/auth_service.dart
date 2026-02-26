@@ -24,6 +24,7 @@ class AuthService {
 
       if (response.statusCode == 200 && body['success'] == true) {
         await _saveSession(body['data']['token'], body['data']);
+        await getUserProfile();
         return {'success': true, 'data': body['data']};
       } else {
         return {
@@ -81,13 +82,46 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
-        return body['data']; 
+        final userData = body['data'];
+        
+        await updateLocalUser(userData);
+        return userData; 
       } else {
         if (response.statusCode == 401) await logout();
         return null;
       }
     } catch (e) {
       return null;
+    }
+  }
+
+  Future<Map<String, dynamic>> updateProfile({String? name, String? imageBase64}) async {
+    final token = await getToken();
+    if (token == null) return {'success': false, 'message': 'Sesión expirada.'};
+
+    final url = Uri.parse('${AppConfig.apiUrl}/user/update');
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          if (name != null) 'name': name,
+          if (imageBase64 != null) 'image_base64': imageBase64,
+        }),
+      );
+
+      final body = jsonDecode(response.body);
+      if (response.statusCode == 200 && body['success'] == true) {
+        await getUserProfile();
+        return {'success': true, 'message': body['message']};
+      } else {
+        return {'success': false, 'message': body['message'] ?? 'Error al actualizar'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Error de conexión: $e'};
     }
   }
 
@@ -100,6 +134,19 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);
     await prefs.setString(_userKey, jsonEncode(userData));
+  }
+
+  Future<void> updateLocalUser(Map<String, dynamic> updatedData) async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? currentDataStr = prefs.getString(_userKey);
+    
+    Map<String, dynamic> currentUserData = {};
+    if (currentDataStr != null) {
+      currentUserData = jsonDecode(currentDataStr);
+    }
+    
+    currentUserData.addAll(updatedData);
+    await prefs.setString(_userKey, jsonEncode(currentUserData));
   }
 
   Future<String?> getToken() async {
