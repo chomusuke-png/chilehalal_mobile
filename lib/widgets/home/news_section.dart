@@ -27,11 +27,11 @@ class NewsSection extends StatelessWidget {
       children: [
         const Text(
           'Noticias HalalFlash',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 20),
         ),
         const SizedBox(height: 16),
         SizedBox(
-          height: 220,
+          height: 240,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: news.length,
