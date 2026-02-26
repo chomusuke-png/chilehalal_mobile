@@ -18,6 +18,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final AuthService _authService = AuthService();
   late TextEditingController _nameCtrl;
+  late TextEditingController _phoneCtrl;
 
   bool _isLoading = false;
   File? _selectedImage;
@@ -27,11 +28,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void initState() {
     super.initState();
     _nameCtrl = TextEditingController(text: widget.userData['name'] ?? '');
+    _phoneCtrl = TextEditingController(text: widget.userData['phone'] ?? '');
   }
 
   @override
   void dispose() {
     _nameCtrl.dispose();
+    _phoneCtrl.dispose();
     super.dispose();
   }
 
@@ -61,14 +64,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
 
     final newName = _nameCtrl.text != widget.userData['name'] ? _nameCtrl.text : null;
+    final newPhone = _phoneCtrl.text != widget.userData['phone'] ? _phoneCtrl.text : null;
 
-    if (newName == null && base64Image == null) {
+    if (newName == null && newPhone == null && base64Image == null) {
       Navigator.pop(context, false);
       return;
     }
 
     final result = await _authService.updateProfile(
       name: newName,
+      phone: newPhone,
       imageBase64: base64Image,
     );
 
@@ -79,7 +84,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('✅ Perfil actualizado'), backgroundColor: Colors.green),
         );
-        Navigator.pop(context, true);
+        Navigator.pop(context, true); 
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result['message']), backgroundColor: Colors.red),
@@ -159,6 +164,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 validator: (val) => val == null || val.trim().isEmpty ? 'El nombre es obligatorio' : null,
+              ),
+              
+              const SizedBox(height: 20),
+
+              const Text('Teléfono', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _phoneCtrl,
+                keyboardType: TextInputType.phone,
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.phone_outlined),
+                  hintText: '+56 9 1234 5678',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
               ),
               
               const SizedBox(height: 24),

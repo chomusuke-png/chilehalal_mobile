@@ -5,7 +5,11 @@ import 'package:chilehalal_mobile/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); 
-  await NotificationService().init();
+  try {
+    await NotificationService().init();
+  } catch (e) {
+    debugPrint('Error inicializando notificaciones: $e');
+  }
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,

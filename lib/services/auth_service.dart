@@ -95,7 +95,11 @@ class AuthService {
     }
   }
 
-  Future<Map<String, dynamic>> updateProfile({String? name, String? imageBase64}) async {
+  Future<Map<String, dynamic>> updateProfile({
+    String? name, 
+    String? phone, 
+    String? imageBase64
+  }) async {
     final token = await getToken();
     if (token == null) return {'success': false, 'message': 'Sesión expirada.'};
 
@@ -109,6 +113,7 @@ class AuthService {
         },
         body: jsonEncode({
           if (name != null) 'name': name,
+          if (phone != null) 'phone': phone,
           if (imageBase64 != null) 'image_base64': imageBase64,
         }),
       );

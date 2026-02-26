@@ -67,6 +67,60 @@ class _AccountScreenState extends State<AccountScreen> {
     }
   }
 
+  Widget _buildPartnerSection(ColorScheme colorScheme) {
+    final company = _userData?['company']?.toString().isNotEmpty == true 
+        ? _userData!['company'] 
+        : 'No especificada';
+    
+    final List<dynamic> brands = _userData?['brands'] ?? [];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 5))
+        ],
+        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.storefront, color: colorScheme.primary),
+              const SizedBox(width: 10),
+              const Text('Datos de Partner', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          const Divider(height: 30),
+          
+          const Text('Empresa / Razón Social', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          const SizedBox(height: 4),
+          Text(company, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          
+          const SizedBox(height: 20),
+          
+          const Text('Marcas Autorizadas', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          const SizedBox(height: 8),
+          brands.isNotEmpty
+              ? Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: brands.map((b) => Chip(
+                    label: Text(b.toString(), style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.w600)),
+                    backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
+                    side: BorderSide.none,
+                  )).toList(),
+                )
+              : const Text('Sin marcas asignadas', style: TextStyle(fontStyle: FontStyle.italic)),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -78,6 +132,8 @@ class _AccountScreenState extends State<AccountScreen> {
     }
 
     final String? profileImage = _userData?['profile_image'];
+    final String phone = _userData?['phone'] ?? '';
+    final bool isPartner = _userData?['role'] == 'partner';
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -148,6 +204,21 @@ class _AccountScreenState extends State<AccountScreen> {
                   textAlign: TextAlign.center,
                 ),
                 
+                if (phone.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.phone, size: 16, color: Colors.grey[500]),
+                      const SizedBox(width: 6),
+                      Text(
+                        phone,
+                        style: TextStyle(fontSize: 15, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ],
+                
                 const SizedBox(height: 20),
                 
                 Chip(
@@ -160,6 +231,11 @@ class _AccountScreenState extends State<AccountScreen> {
                   avatar: Icon(Icons.verified_user, size: 18, color: colorScheme.primary),
                   side: BorderSide.none,
                 ),
+
+                if (isPartner) ...[
+                  const SizedBox(height: 30),
+                  _buildPartnerSection(colorScheme),
+                ],
                 
                 const SizedBox(height: 60),
                 
