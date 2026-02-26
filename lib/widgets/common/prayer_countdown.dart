@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:chilehalal_mobile/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -57,6 +58,7 @@ class _PrayerCountdownState extends State<PrayerCountdown> {
           });
           
           _calculateNextPrayer();
+          _scheduleDailyNotifications();
           _startCountdown();
         }
       } else {
@@ -64,6 +66,32 @@ class _PrayerCountdownState extends State<PrayerCountdown> {
       }
     } catch (e) {
       _handleError();
+    }
+  }
+
+  void _scheduleDailyNotifications() {
+    if (_prayerTimes == null) return;
+    
+    final now = DateTime.now();
+    final orderedKeys = const ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
+    
+    NotificationService().cancelAllNotifications();
+
+    int notificationId = 100;
+    
+    for (var key in orderedKeys) {
+      final timeStr = _prayerTimes![key]!;
+      final prayerDate = _parseTime(timeStr, now);
+
+      if (prayerDate.isAfter(now)) {
+        NotificationService().scheduleNotification(
+          id: notificationId,
+          title: 'Hora de Oración: $key',
+          body: 'Es el momento de la oración de $key.',
+          scheduledTime: prayerDate,
+        );
+      }
+      notificationId++;
     }
   }
 

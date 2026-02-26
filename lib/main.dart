@@ -1,9 +1,11 @@
 import 'package:chilehalal_mobile/screens/main_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:chilehalal_mobile/services/notification_service.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized(); 
+  await NotificationService().init();
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:chilehalal_mobile/screens/notifications/notifications_screen.dart';
 
 class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
   final int currentIndex;
@@ -15,19 +17,10 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return AppBar(
-      title: currentIndex == 0
-          ? Image.asset(
+      title: Image.asset(
               'assets/images/chilehalal-isotipo.png',
               height: 40,
               fit: BoxFit.contain,
-            )
-          : Text(
-              title,
-              style: TextStyle(
-                color: colorScheme.onSurface,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
             ),
       backgroundColor: colorScheme.surface,
       centerTitle: true,
@@ -39,9 +32,22 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
           height: 2.0,
         ),
       ),
+      actions: [
+        IconButton(
+          icon: FaIcon(FontAwesomeIcons.solidBell, size: 22, color: colorScheme.primary,),
+          onPressed: () {
+            Navigator.of(context, rootNavigator: true).push(
+              MaterialPageRoute(
+                builder: (context) => const NotificationsScreen(),
+              ),
+            );
+          },
+        ),
+        const SizedBox(width: 8),
+      ],
     );
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 2.0);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
