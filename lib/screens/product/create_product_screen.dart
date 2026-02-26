@@ -136,7 +136,6 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
       appBar: AppBar(
         title: Text(isRegularUser ? 'Solicitar Producto' : 'Nuevo Producto'),
         foregroundColor: Colors.black,
-        backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: SingleChildScrollView(

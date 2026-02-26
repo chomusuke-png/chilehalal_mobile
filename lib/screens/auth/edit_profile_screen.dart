@@ -96,8 +96,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Editar Perfil', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.transparent,
+        title: const Text('Editar Perfil'),
         elevation: 0,
         foregroundColor: colorScheme.onSurface,
       ),

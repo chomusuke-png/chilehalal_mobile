@@ -58,8 +58,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Mis Favoritos', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.transparent,
+        title: const Text('Mis Favoritos'),
         elevation: 0,
         foregroundColor: colorScheme.onSurface,
         centerTitle: true,

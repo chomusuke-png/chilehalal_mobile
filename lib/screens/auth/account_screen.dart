@@ -81,10 +81,8 @@ class _AccountScreenState extends State<AccountScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Mi Perfil', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.transparent,
+        title: const Text('Mi Perfil'),
         elevation: 0,
         foregroundColor: Colors.black,
         actions: [
