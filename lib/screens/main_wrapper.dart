@@ -41,7 +41,7 @@ class MainWrapperState extends State<MainWrapper> {
   List<PersistentBottomNavBarItem> _navBarsItems(ColorScheme colorScheme) {
     return [
       PersistentBottomNavBarItem(
-        icon: const FaIcon(FontAwesomeIcons.house),
+        icon: const FaIcon(FontAwesomeIcons.solidHouse),
         title: "Inicio",
         activeColorPrimary: colorScheme.primary,
         inactiveColorPrimary: Colors.grey,
@@ -69,7 +69,7 @@ class MainWrapperState extends State<MainWrapper> {
         activeColorSecondary: Colors.white,
       ),
       PersistentBottomNavBarItem(
-        icon: const FaIcon(FontAwesomeIcons.user),
+        icon: const FaIcon(FontAwesomeIcons.solidUser),
         title: "Cuenta",
         activeColorPrimary: colorScheme.primary,
         inactiveColorPrimary: Colors.grey,

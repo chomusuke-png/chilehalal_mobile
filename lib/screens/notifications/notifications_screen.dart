@@ -40,15 +40,6 @@ class NotificationsScreen extends StatelessWidget {
                 color: colorScheme.onSurface,
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Te avisaremos cuando sea hora\nde la próxima oración.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
-            ),
           ],
         ),
       ),

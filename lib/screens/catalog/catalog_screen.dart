@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:chilehalal_mobile/services/product_service.dart';
 import 'package:chilehalal_mobile/widgets/layout/catalog_search_bar.dart';
+import 'package:chilehalal_mobile/widgets/layout/active_filters_row.dart';
 import 'package:chilehalal_mobile/widgets/layout/product_grid.dart';
 import 'package:chilehalal_mobile/widgets/layout/pagination_controls.dart';
 import 'package:chilehalal_mobile/widgets/common/empty_state.dart';
@@ -242,48 +243,6 @@ class _CatalogScreenState extends State<CatalogScreen> {
     );
   }
 
-  Widget _buildActiveFilters() {
-    if (_currentCategoryName == null && _selectedBrands.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Padding(
-      padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            const Text('Filtros: ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
-            const SizedBox(width: 8),
-            
-            if (_currentCategoryName != null)
-              Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: InputChip(
-                  label: Text(_currentCategoryName!),
-                  deleteIcon: const Icon(Icons.cancel, size: 18),
-                  onDeleted: () => _removeFilter(isCategory: true),
-                  backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                  side: BorderSide.none,
-                ),
-              ),
-
-            ..._selectedBrands.map((brand) => Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: InputChip(
-                    label: Text(brand),
-                    deleteIcon: const Icon(Icons.cancel, size: 18),
-                    onDeleted: () => _removeFilter(brandToRemove: brand),
-                    backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                    side: BorderSide.none,
-                  ),
-                )),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -302,7 +261,12 @@ class _CatalogScreenState extends State<CatalogScreen> {
               hasContent: _currentSearch.isNotEmpty,
             ),
 
-            _buildActiveFilters(),
+            ActiveFiltersRow(
+              currentCategoryName: _currentCategoryName,
+              selectedBrands: _selectedBrands,
+              onCategoryRemoved: () => _removeFilter(isCategory: true),
+              onBrandRemoved: (brand) => _removeFilter(brandToRemove: brand),
+            ),
 
             Expanded(
               child: _isLoadingProducts
