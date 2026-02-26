@@ -17,11 +17,15 @@ class ProductPaginationResponse {
 
 class ProductService {
   final AuthService _authService = AuthService();
+  
+  static List<Map<String, dynamic>>? _cachedCategories;
+  static List<String>? _cachedBrands;
 
   Future<ProductPaginationResponse> getProducts({
     int page = 1, 
     String search = '', 
-    int? categoryId
+    int? categoryId,
+    List<String>? brands,
   }) async {
     
     final queryParams = {
@@ -31,6 +35,10 @@ class ProductService {
     
     if (categoryId != null) {
       queryParams['category_id'] = categoryId.toString();
+    }
+
+    if (brands != null && brands.isNotEmpty) {
+      queryParams['brands'] = brands.join(','); 
     }
 
     final uri = Uri.parse('${AppConfig.apiUrl}/products').replace(queryParameters: queryParams);
@@ -54,13 +62,39 @@ class ProductService {
   }
 
   Future<List<Map<String, dynamic>>> getCategories() async {
+    if (_cachedCategories != null && _cachedCategories!.isNotEmpty) {
+      return _cachedCategories!;
+    }
+
     final url = Uri.parse('${AppConfig.apiUrl}/categories');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
         if (body['success'] == true) {
-          return List<Map<String, dynamic>>.from(body['data'] ?? []);
+          _cachedCategories = List<Map<String, dynamic>>.from(body['data'] ?? []);
+          return _cachedCategories!;
+        }
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<List<String>> getBrands() async {
+    if (_cachedBrands != null && _cachedBrands!.isNotEmpty) {
+      return _cachedBrands!;
+    }
+
+    final url = Uri.parse('${AppConfig.apiUrl}/brands');
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        if (body['success'] == true) {
+          _cachedBrands = List<String>.from(body['data'] ?? []);
+          return _cachedBrands!;
         }
       }
       return [];

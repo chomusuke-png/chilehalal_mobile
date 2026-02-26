@@ -26,9 +26,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
 
   List<dynamic> _products = [];
   List<Map<String, dynamic>> _categories = [];
+  List<String> _brands = [];
   
   bool _isLoadingProducts = false;
-  bool _isLoadingCategories = true;
+  bool _isLoadingFilters = true;
   
   int _currentPage = 1;
   int _totalPages = 1;
@@ -36,6 +37,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   
   int? _currentCategoryId;
   String? _currentCategoryName;
+  List<String> _selectedBrands = [];
 
   @override
   void initState() {
@@ -43,7 +45,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
     _currentCategoryId = widget.initialCategoryId;
     _currentCategoryName = widget.initialCategoryName;
     
-    _loadCategories();
+    _loadFiltersData();
     _loadProducts();
   }
 
@@ -53,12 +55,17 @@ class _CatalogScreenState extends State<CatalogScreen> {
     super.dispose();
   }
 
-  Future<void> _loadCategories() async {
-    final categories = await _productService.getCategories();
+  Future<void> _loadFiltersData() async {
+    final results = await Future.wait([
+      _productService.getCategories(),
+      _productService.getBrands(),
+    ]);
+
     if (mounted) {
       setState(() {
-        _categories = categories;
-        _isLoadingCategories = false;
+        _categories = results[0] as List<Map<String, dynamic>>;
+        _brands = results[1] as List<String>;
+        _isLoadingFilters = false;
       });
     }
   }
@@ -72,6 +79,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
       page: page,
       search: _currentSearch,
       categoryId: _currentCategoryId,
+      brands: _selectedBrands,
     );
 
     if (mounted) {
@@ -95,15 +103,185 @@ class _CatalogScreenState extends State<CatalogScreen> {
     setState(() {});
   }
 
-  void _onCategorySelected(int? categoryId, String? categoryName) {
-    if (_currentCategoryId == categoryId) return;
-
+  void _removeFilter({bool isCategory = false, String? brandToRemove}) {
     setState(() {
-      _currentCategoryId = categoryId;
-      _currentCategoryName = categoryName;
+      if (isCategory) {
+        _currentCategoryId = null;
+        _currentCategoryName = null;
+      }
+      if (brandToRemove != null) {
+        _selectedBrands.remove(brandToRemove);
+      }
     });
-    
     _loadProducts(page: 1);
+  }
+
+  void _showFilterModal() {
+    int? tempCategoryId = _currentCategoryId;
+    String? tempCategoryName = _currentCategoryName;
+    List<String> tempBrands = List.from(_selectedBrands);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            final colorScheme = Theme.of(context).colorScheme;
+
+            return DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.6,
+              maxChildSize: 0.9,
+              builder: (_, controller) {
+                return Container(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Filtros', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
+                      ),
+                      const Divider(),
+                      Expanded(
+                        child: _isLoadingFilters
+                            ? const Center(child: CircularProgressIndicator())
+                            : ListView(
+                                controller: controller,
+                                children: [
+                                  const Text('Categorías', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                  const SizedBox(height: 10),
+                                  Wrap(
+                                    spacing: 8.0,
+                                    children: _categories.map((cat) {
+                                      final isSelected = tempCategoryId == cat['id'];
+                                      return ChoiceChip(
+                                        label: Text(cat['name']),
+                                        selected: isSelected,
+                                        selectedColor: colorScheme.primary.withValues(alpha: 0.2),
+                                        checkmarkColor: colorScheme.primary,
+                                        onSelected: (bool selected) {
+                                          setModalState(() {
+                                            if (selected) {
+                                              tempCategoryId = cat['id'];
+                                              tempCategoryName = cat['name'];
+                                            } else {
+                                              tempCategoryId = null;
+                                              tempCategoryName = null;
+                                            }
+                                          });
+                                        },
+                                      );
+                                    }).toList(),
+                                  ),
+                                  
+                                  const SizedBox(height: 24),
+                                  
+                                  const Text('Marcas', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                  const SizedBox(height: 10),
+                                  Wrap(
+                                    spacing: 8.0,
+                                    children: _brands.map((brand) {
+                                      final isSelected = tempBrands.contains(brand);
+                                      return FilterChip(
+                                        label: Text(brand),
+                                        selected: isSelected,
+                                        selectedColor: colorScheme.primary.withValues(alpha: 0.2),
+                                        checkmarkColor: colorScheme.primary,
+                                        onSelected: (bool selected) {
+                                          setModalState(() {
+                                            if (selected) {
+                                              tempBrands.add(brand);
+                                            } else {
+                                              tempBrands.remove(brand);
+                                            }
+                                          });
+                                        },
+                                      );
+                                    }).toList(),
+                                  ),
+                                ],
+                              ),
+                      ),
+                      
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _currentCategoryId = tempCategoryId;
+                            _currentCategoryName = tempCategoryName;
+                            _selectedBrands = tempBrands;
+                          });
+                          Navigator.pop(context);
+                          _loadProducts(page: 1);
+                        },
+                        child: const Text('APLICAR FILTROS', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildActiveFilters() {
+    if (_currentCategoryName == null && _selectedBrands.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            const Text('Filtros: ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+            const SizedBox(width: 8),
+            
+            if (_currentCategoryName != null)
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: InputChip(
+                  label: Text(_currentCategoryName!),
+                  deleteIcon: const Icon(Icons.cancel, size: 18),
+                  onDeleted: () => _removeFilter(isCategory: true),
+                  backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                  side: BorderSide.none,
+                ),
+              ),
+
+            ..._selectedBrands.map((brand) => Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: InputChip(
+                    label: Text(brand),
+                    deleteIcon: const Icon(Icons.cancel, size: 18),
+                    onDeleted: () => _removeFilter(brandToRemove: brand),
+                    backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                    side: BorderSide.none,
+                  ),
+                )),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -120,10 +298,11 @@ class _CatalogScreenState extends State<CatalogScreen> {
               controller: _searchController,
               onSubmitted: _onSearchChanged,
               onClear: _clearSearch,
+              onFilterPressed: _showFilterModal,
               hasContent: _currentSearch.isNotEmpty,
             ),
 
-            _buildCategoryFilters(colorScheme),
+            _buildActiveFilters(),
 
             Expanded(
               child: _isLoadingProducts
@@ -141,65 +320,6 @@ class _CatalogScreenState extends State<CatalogScreen> {
               ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildCategoryFilters(ColorScheme colorScheme) {
-    if (_isLoadingCategories) {
-      return const SizedBox(
-        height: 50,
-        child: Center(child: SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))),
-      );
-    }
-
-    if (_categories.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return SizedBox(
-      height: 60,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        itemCount: _categories.length + 1,
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            final isSelected = _currentCategoryId == null;
-            return Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: ChoiceChip(
-                label: const Text('Todos', style: TextStyle(fontWeight: FontWeight.bold)),
-                selected: isSelected,
-                selectedColor: colorScheme.primary.withValues(alpha: 0.2),
-                checkmarkColor: colorScheme.primary,
-                onSelected: (bool selected) {
-                  if (selected) _onCategorySelected(null, null);
-                },
-              ),
-            );
-          }
-
-          final category = _categories[index - 1];
-          final isSelected = _currentCategoryId == category['id'];
-
-          return Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: ChoiceChip(
-              label: Text(category['name'] ?? ''),
-              selected: isSelected,
-              selectedColor: colorScheme.primary.withValues(alpha: 0.2),
-              checkmarkColor: colorScheme.primary,
-              onSelected: (bool selected) {
-                if (selected) {
-                  _onCategorySelected(category['id'], category['name']);
-                } else {
-                  _onCategorySelected(null, null);
-                }
-              },
-            ),
-          );
-        },
       ),
     );
   }
