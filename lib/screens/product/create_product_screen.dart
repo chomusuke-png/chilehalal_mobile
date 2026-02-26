@@ -27,7 +27,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
   bool _isLoading = false;
   bool _isPartner = false;
   String? _userRole;
-  List<dynamic> _myBrands = [];
+  List<String> _myBrands = [];
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
   List<Map<String, dynamic>> _availableCategories = [];
@@ -60,12 +60,13 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
         
         if (role == 'partner') {
           _isPartner = true;
-          _myBrands = user?['brands'] ?? []; 
+          final brandsRaw = user?['brands'] as List<dynamic>? ?? [];
+          _myBrands = brandsRaw.map((e) => e.toString()).toList();
         }
       });
       
       if (_isPartner && _myBrands.isNotEmpty) {
-        _brandCtrl.text = _myBrands[0].toString();
+        _brandCtrl.text = _myBrands[0];
       }
     }
   }
@@ -205,16 +206,40 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
               ),
               const SizedBox(height: 16),
 
-              TextFormField(
-                controller: _brandCtrl,
-                decoration: InputDecoration(
-                  labelText: 'Marca / Empresa', 
-                  border: const OutlineInputBorder(),
-                  helperText: _isPartner ? 'Tu cuenta está asociada a esta marca.' : null,
+              if (_isPartner && _myBrands.isNotEmpty)
+                DropdownButtonFormField<String>(
+                  value: _myBrands.contains(_brandCtrl.text) ? _brandCtrl.text : _myBrands.first,
+                  decoration: InputDecoration(
+                    labelText: 'Marca / Empresa', 
+                    border: const OutlineInputBorder(),
+                    helperText: 'Selecciona una de tus marcas autorizadas.',
+                    helperStyle: TextStyle(color: primaryColor),
+                  ),
+                  items: _myBrands.map((brand) {
+                    return DropdownMenuItem(
+                      value: brand,
+                      child: Text(brand),
+                    );
+                  }).toList(),
+                  onChanged: (val) {
+                    if (val != null) {
+                      setState(() {
+                        _brandCtrl.text = val;
+                      });
+                    }
+                  },
+                  validator: (v) => v == null || v.isEmpty ? 'Selecciona una marca' : null,
+                )
+              else
+                TextFormField(
+                  controller: _brandCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Marca / Empresa', 
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (v) => v!.isEmpty ? 'Campo requerido' : null,
                 ),
-                readOnly: _isPartner && _myBrands.isNotEmpty,
-                validator: (v) => v!.isEmpty ? 'Campo requerido' : null,
-              ),
+              
               const SizedBox(height: 16),
 
               TextFormField(

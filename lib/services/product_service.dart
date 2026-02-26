@@ -164,4 +164,69 @@ class ProductService {
       return {'success': false, 'message': 'Error de conexión: $e'};
     }
   }
+
+  Future<Map<String, dynamic>> deleteProduct(int productId) async {
+    final token = await _authService.getToken();
+    if (token == null) return {'success': false, 'message': 'Sesión expirada.'};
+
+    final url = Uri.parse('${AppConfig.apiUrl}/products/$productId');
+    try {
+      final response = await http.delete(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      
+      final body = jsonDecode(response.body);
+      if (response.statusCode == 200 && body['success'] == true) {
+        return {'success': true, 'message': body['message']};
+      } else {
+        return {'success': false, 'message': body['message'] ?? 'Error al eliminar.'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Error de conexión.'};
+    }
+  }
+
+  Future<Map<String, dynamic>> updateProduct({
+    required int productId,
+    String? name,
+    String? brand,
+    String? barcode,
+    String? isHalal, 
+    String? description,
+    String? imageBase64,
+    List<int>? categories,
+  }) async {
+    final token = await _authService.getToken();
+    if (token == null) return {'success': false, 'message': 'Sesión expirada.'};
+
+    final url = Uri.parse('${AppConfig.apiUrl}/products/$productId');
+    try {
+      final response = await http.put(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          if (name != null) 'name': name,
+          if (brand != null) 'brand': brand,
+          if (barcode != null) 'barcode': barcode,
+          if (isHalal != null) 'is_halal': isHalal,
+          if (description != null) 'description': description,
+          if (imageBase64 != null) 'image_base64': imageBase64,
+          if (categories != null) 'categories': categories,
+        }),
+      );
+
+      final body = jsonDecode(response.body);
+      if (response.statusCode == 200 && body['success'] == true) {
+        return {'success': true, 'message': body['message']};
+      } else {
+        return {'success': false, 'message': body['message'] ?? 'Error al actualizar.'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Error de conexión.'};
+    }
+  }
 }
