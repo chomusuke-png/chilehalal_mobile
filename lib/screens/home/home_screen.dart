@@ -5,6 +5,7 @@ import 'package:chilehalal_mobile/services/recent_products_service.dart';
 import 'package:chilehalal_mobile/services/news_service.dart';
 import 'package:chilehalal_mobile/widgets/common/prayer_countdown.dart';
 import 'package:chilehalal_mobile/widgets/layout/main_app_bar.dart';
+import 'package:chilehalal_mobile/widgets/layout/toolbox_drawer.dart';
 import 'package:chilehalal_mobile/widgets/home/recent_products_section.dart';
 import 'package:chilehalal_mobile/widgets/home/category_grid_section.dart';
 import 'package:chilehalal_mobile/widgets/home/news_section.dart';
@@ -63,6 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
         currentIndex: 0, 
         title: 'ChileHalal'
       ),
+      drawer: const ToolboxDrawer(),
       backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: _isLoading 
