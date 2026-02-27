@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:chilehalal_mobile/screens/tools/prayer_schedule_screen.dart';
 
 class ToolboxDrawer extends StatelessWidget {
   const ToolboxDrawer({super.key});
@@ -66,7 +67,10 @@ class ToolboxDrawer extends StatelessWidget {
                   title: 'Horario de oraciones',
                   onTap: () {
                     Navigator.pop(context);
-                    // TODO: Navegar al horario de oraciones
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const PrayerScheduleScreen()),
+                    );
                   },
                 ),
                 

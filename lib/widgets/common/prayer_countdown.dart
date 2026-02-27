@@ -1,8 +1,7 @@
 import 'dart:async';
-import 'dart:convert';
-import 'package:chilehalal_mobile/services/notification_service.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:chilehalal_mobile/services/prayer_service.dart';
+import 'package:chilehalal_mobile/screens/tools/prayer_schedule_screen.dart';
 
 class PrayerCountdown extends StatefulWidget {
   final TextStyle? style;
@@ -26,7 +25,7 @@ class _PrayerCountdownState extends State<PrayerCountdown> {
   @override
   void initState() {
     super.initState();
-    _fetchPrayerTimes();
+    _loadPrayerTimes();
   }
 
   @override
@@ -35,73 +34,26 @@ class _PrayerCountdownState extends State<PrayerCountdown> {
     super.dispose();
   }
 
-  Future<void> _fetchPrayerTimes() async {
-    const String apiUrl = "https://api.aladhan.com/v1/timingsByCity?city=Santiago&country=Chile&method=3";
+  Future<void> _loadPrayerTimes() async {
+    final times = await PrayerService().getPrayerTimes();
     
-    try {
-      final response = await http.get(Uri.parse(apiUrl));
-      
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final timings = data['data']['timings'];
-
-        if (mounted) {
-          setState(() {
-            _prayerTimes = {
-              "Fajr": timings['Fajr'],
-              "Dhuhr": timings['Dhuhr'],
-              "Asr": timings['Asr'],
-              "Maghrib": timings['Maghrib'],
-              "Isha": timings['Isha'],
-            };
-            _isLoading = false;
-          });
-          
-          _calculateNextPrayer();
-          _scheduleDailyNotifications();
-          _startCountdown();
-        }
-      } else {
-        _handleError();
+    if (times != null) {
+      if (mounted) {
+        setState(() {
+          _prayerTimes = times;
+          _isLoading = false;
+        });
+        _calculateNextPrayer();
+        _startCountdown();
       }
-    } catch (e) {
-      _handleError();
-    }
-  }
-
-  void _scheduleDailyNotifications() {
-    if (_prayerTimes == null) return;
-    
-    final now = DateTime.now();
-    final orderedKeys = const ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
-    
-    NotificationService().cancelAllNotifications();
-
-    int notificationId = 100;
-    
-    for (var key in orderedKeys) {
-      final timeStr = _prayerTimes![key]!;
-      final prayerDate = _parseTime(timeStr, now);
-
-      if (prayerDate.isAfter(now)) {
-        NotificationService().scheduleNotification(
-          id: notificationId,
-          title: 'Hora de Oración: $key',
-          body: 'Es el momento de la oración de $key.',
-          scheduledTime: prayerDate,
-        );
+    } else {
+      if (mounted) {
+        setState(() {
+          _hasError = true;
+          _isLoading = false;
+          _nextPrayerName = "Error de conexión";
+        });
       }
-      notificationId++;
-    }
-  }
-
-  void _handleError() {
-    if (mounted) {
-      setState(() {
-        _hasError = true;
-        _isLoading = false;
-        _nextPrayerName = "Error de conexión";
-      });
     }
   }
 
@@ -174,6 +126,15 @@ class _PrayerCountdownState extends State<PrayerCountdown> {
     return "$hours:$minutes:$seconds";
   }
 
+  void _navigateToSchedule() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const PrayerScheduleScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -193,32 +154,48 @@ class _PrayerCountdownState extends State<PrayerCountdown> {
       );
     }
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          'Próxima oración: $_nextPrayerName',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: colorScheme.primary,
-                fontWeight: FontWeight.w500,
-              ),
-        ),
-        const SizedBox(height: 5),
-        Text(
-          _formatDuration(_timeRemaining),
-          style: widget.style ??
-              Theme.of(context).textTheme.displayMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    fontFeatures: const [FontFeature.tabularFigures()],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _navigateToSchedule,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Próxima oración: $_nextPrayerName',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
                   ),
-        ),
-        Text(
-          'tiempo restante',
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: colorScheme.outline,
+                ],
               ),
+              const SizedBox(height: 5),
+              Text(
+                _formatDuration(_timeRemaining),
+                style: widget.style ??
+                    Theme.of(context).textTheme.displayMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+              ),
+              Text(
+                'tiempo restante',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: colorScheme.outline,
+                    ),
+              ),
+            ],
+          ),
         ),
-      ],
+      ),
     );
   }
 }
