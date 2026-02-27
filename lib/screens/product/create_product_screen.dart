@@ -18,6 +18,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
   final _formKey = GlobalKey<FormState>();
   final ProductService _productService = ProductService();
   final AuthService _authService = AuthService();
+  
   final TextEditingController _nameCtrl = TextEditingController();
   final TextEditingController _brandCtrl = TextEditingController();
   final TextEditingController _barcodeCtrl = TextEditingController();
@@ -28,6 +29,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
   bool _isPartner = false;
   String? _userRole;
   List<String> _myBrands = [];
+  
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
   List<Map<String, dynamic>> _availableCategories = [];
@@ -111,12 +113,8 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
     if (mounted) {
       if (result['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _userRole == 'user' 
-                ? 'Solicitud enviada a revisión' 
-                : 'Producto creado'
-            ), 
+          const SnackBar(
+            content: Text('Producto creado'), 
             backgroundColor: Colors.green
           ),
         );
@@ -131,12 +129,11 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isRegularUser = _userRole == 'user';
     final primaryColor = Theme.of(context).primaryColor;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isRegularUser ? 'Solicitar Producto' : 'Nuevo Producto'),
+        title: const Text('Nuevo Producto'),
         foregroundColor: Colors.black,
         elevation: 0,
       ),
@@ -160,9 +157,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        isRegularUser 
-                          ? 'Ingresa los datos del producto. Nuestro equipo verificará la información antes de publicarlo.'
-                          : 'Agrega un nuevo producto al catálogo oficial.',
+                        'Agrega un nuevo producto al catálogo.',
                         style: TextStyle(color: Colors.grey[800], fontSize: 13),
                       ),
                     ),
@@ -317,10 +312,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                 ),
                 child: _isLoading 
                   ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                  : Text(
-                      isRegularUser ? 'ENVIAR SOLICITUD' : 'GUARDAR PRODUCTO', 
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)
-                    ),
+                  : const Text('GUARDAR PRODUCTO', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ],
           ),

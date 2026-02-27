@@ -152,7 +152,7 @@ class _ProductScreenState extends State<ProductScreen> {
     }
 
     if (_notFound) {
-      final bool isPrivileged = _userRole == 'partner' || _userRole == 'editor' || _userRole == 'owner';
+      final bool isPrivileged = _userRole == 'partner' || _userRole == 'editor' || _userRole == 'administrator' || _userRole == 'owner';
       
       return Center(
         child: Padding(
@@ -170,7 +170,7 @@ class _ProductScreenState extends State<ProductScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Código: ${widget.barcode}', 
+                'Código: ${widget.barcode ?? "Desconocido"}', 
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.grey, fontSize: 16)
               ),
@@ -190,12 +190,12 @@ class _ProductScreenState extends State<ProductScreen> {
               
               const SizedBox(height: 16),
 
-              if (_userRole != null)
+              if (isPrivileged)
                 ElevatedButton.icon(
-                  icon: Icon(isPrivileged ? Icons.add_circle : Icons.help_outline),
-                  label: Text(
-                    isPrivileged ? 'Agregar a Base de Datos' : '¿No está? Solicitar Agregar',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  icon: const Icon(Icons.add_circle),
+                  label: const Text(
+                    'Agregar a Base de Datos',
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
