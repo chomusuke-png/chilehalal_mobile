@@ -49,8 +49,32 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   Future<void> _handleLogout() async {
-    await _authService.logout();
-    _checkSession();
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cerrar Sesión'),
+        content: const Text('¿Estás seguro que deseas salir de tu cuenta?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Cerrar Sesión'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await _authService.logout();
+      _checkSession();
+    }
   }
 
   void _navigateToEditProfile() async {
@@ -64,6 +88,14 @@ class _AccountScreenState extends State<AccountScreen> {
     if (result == true) {
       setState(() => _isLoading = true);
       _checkSession();
+    }
+  }
+
+  void _handleMenuAction(String value) {
+    if (value == 'edit') {
+      _navigateToEditProfile();
+    } else if (value == 'logout') {
+      _handleLogout();
     }
   }
 
@@ -142,10 +174,32 @@ class _AccountScreenState extends State<AccountScreen> {
         elevation: 0,
         foregroundColor: Colors.black,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: _navigateToEditProfile,
-            tooltip: 'Editar Perfil',
+          PopupMenuButton<String>(
+            onSelected: _handleMenuAction,
+            icon: const Icon(Icons.more_vert),
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem<String>(
+                value: 'edit',
+                child: Row(
+                  children: [
+                    Icon(Icons.edit, size: 20, color: Colors.black87),
+                    SizedBox(width: 12),
+                    Text('Editar Perfil'),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem<String>(
+                value: 'logout',
+                child: Row(
+                  children: [
+                    Icon(Icons.logout, size: 20, color: Colors.red),
+                    SizedBox(width: 12),
+                    Text('Cerrar Sesión', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -155,106 +209,91 @@ class _AccountScreenState extends State<AccountScreen> {
           physics: const AlwaysScrollableScrollPhysics(),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  width: 130,
-                  height: 130,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3), width: 4),
-                    boxShadow: [
-                      BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 5))
-                    ],
-                  ),
-                  child: ClipOval(
-                    child: profileImage != null && profileImage.isNotEmpty
-                        ? CachedNetworkImage(
-                            imageUrl: profileImage,
-                            fit: BoxFit.cover,
-                            memCacheWidth: 300,
-                            placeholder: (context, url) => Container(
-                              color: Colors.grey[200],
-                              child: const Center(child: CircularProgressIndicator()),
-                            ),
-                            errorWidget: (context, url, error) => Container(
+            child: SizedBox(
+              width: double.infinity,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 130,
+                    height: 130,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3), width: 4),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 5))
+                      ],
+                    ),
+                    child: ClipOval(
+                      child: profileImage != null && profileImage.isNotEmpty
+                          ? CachedNetworkImage(
+                              imageUrl: profileImage,
+                              fit: BoxFit.cover,
+                              memCacheWidth: 300,
+                              placeholder: (context, url) => Container(
+                                color: Colors.grey[200],
+                                child: const Center(child: CircularProgressIndicator()),
+                              ),
+                              errorWidget: (context, url, error) => Container(
+                                color: colorScheme.primary,
+                                child: const Icon(Icons.person, size: 60, color: Colors.white),
+                              ),
+                            )
+                          : Container(
                               color: colorScheme.primary,
                               child: const Icon(Icons.person, size: 60, color: Colors.white),
                             ),
-                          )
-                        : Container(
-                            color: colorScheme.primary,
-                            child: const Icon(Icons.person, size: 60, color: Colors.white),
-                          ),
-                  ),
-                ),
-                
-                const SizedBox(height: 24),
-                
-                Text(
-                  _userData?['name'] ?? 'Usuario',
-                  style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _userData?['email'] ?? 'correo@ejemplo.com',
-                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                  textAlign: TextAlign.center,
-                ),
-                
-                if (phone.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.phone, size: 16, color: Colors.grey[500]),
-                      const SizedBox(width: 6),
-                      Text(
-                        phone,
-                        style: TextStyle(fontSize: 15, color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-                ],
-                
-                const SizedBox(height: 20),
-                
-                Chip(
-                  label: Text(
-                    'Rol: ${_userData?['role'] ?? 'user'}'.toUpperCase(),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
-                  labelStyle: TextStyle(color: colorScheme.primary),
-                  avatar: Icon(Icons.verified_user, size: 18, color: colorScheme.primary),
-                  side: BorderSide.none,
-                ),
-
-                if (isPartner) ...[
-                  const SizedBox(height: 30),
-                  _buildPartnerSection(colorScheme),
-                ],
-                
-                const SizedBox(height: 60),
-                
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _handleLogout,
-                    icon: const Icon(Icons.logout),
-                    label: const Text('Cerrar Sesión', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red[50],
-                      foregroundColor: Colors.red,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                     ),
                   ),
-                ),
-              ],
+                  
+                  const SizedBox(height: 24),
+                  
+                  Text(
+                    _userData?['name'] ?? 'Usuario',
+                    style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _userData?['email'] ?? 'correo@ejemplo.com',
+                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    textAlign: TextAlign.center,
+                  ),
+                  
+                  if (phone.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.phone, size: 16, color: Colors.grey[500]),
+                        const SizedBox(width: 6),
+                        Text(
+                          phone,
+                          style: TextStyle(fontSize: 15, color: Colors.grey[600]),
+                        ),
+                      ],
+                    ),
+                  ],
+                  
+                  const SizedBox(height: 20),
+                  
+                  Chip(
+                    label: Text(
+                      'Rol: ${_userData?['role'] ?? 'user'}'.toUpperCase(),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
+                    labelStyle: TextStyle(color: colorScheme.primary),
+                    avatar: Icon(Icons.verified_user, size: 18, color: colorScheme.primary),
+                    side: BorderSide.none,
+                  ),
+
+                  if (isPartner) ...[
+                    const SizedBox(height: 30),
+                    _buildPartnerSection(colorScheme),
+                  ],
+                ],
+              ),
             ),
           ),
         ),
