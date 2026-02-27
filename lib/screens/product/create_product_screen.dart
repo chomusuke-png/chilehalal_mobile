@@ -75,6 +75,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
     final XFile? image = await _picker.pickImage(
       source: ImageSource.gallery,
       imageQuality: 70,
+      maxWidth: 800,
     );
     
     if (image != null) {
@@ -113,8 +114,8 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
           SnackBar(
             content: Text(
               _userRole == 'user' 
-                ? '✅ Solicitud enviada a revisión' 
-                : '✅ Producto creado exitosamente'
+                ? 'Solicitud enviada a revisión' 
+                : 'Producto creado exitosamente'
             ), 
             backgroundColor: Colors.green
           ),

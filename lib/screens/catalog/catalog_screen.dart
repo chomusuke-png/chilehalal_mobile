@@ -93,6 +93,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
     }
   }
 
+  Future<void> _handleRefresh() async {
+    await _loadProducts(page: 1);
+  }
+
   void _onSearchChanged(String value) {
     _currentSearch = value;
     _loadProducts(page: 1);
@@ -271,9 +275,23 @@ class _CatalogScreenState extends State<CatalogScreen> {
             Expanded(
               child: _isLoadingProducts
                   ? const Center(child: CircularProgressIndicator())
-                  : _products.isEmpty
-                      ? const EmptyState(message: 'No se encontraron productos')
-                      : ProductGrid(products: _products),
+                  : RefreshIndicator(
+                      onRefresh: _handleRefresh,
+                      color: colorScheme.primary,
+                      child: _products.isEmpty
+                          ? CustomScrollView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              slivers: [
+                                SliverFillRemaining(
+                                  hasScrollBody: false,
+                                  child: const Center(
+                                    child: EmptyState(message: 'No se encontraron productos'),
+                                  ),
+                                ),
+                              ],
+                            )
+                          : ProductGrid(products: _products),
+                    ),
             ),
 
             if (_products.isNotEmpty)

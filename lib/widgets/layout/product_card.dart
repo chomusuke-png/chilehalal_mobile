@@ -100,18 +100,21 @@ class _ProductCardState extends State<ProductCard> {
     showDialog(
       context: context,
       barrierDismissible: false,
+      useRootNavigator: true, 
       builder: (c) => const Center(child: CircularProgressIndicator()),
     );
 
     final productId = widget.product['id'] as int;
     final result = await ProductService().deleteProduct(productId);
 
-    if (mounted) Navigator.pop(context);
+    if (mounted) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
 
     if (mounted) {
       if (result['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('✅ Producto eliminado. Desliza hacia abajo para actualizar.'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('Producto eliminado. Desliza hacia abajo para actualizar.'), backgroundColor: Colors.green),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
