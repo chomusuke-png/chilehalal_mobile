@@ -93,7 +93,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
     if (mounted) {
       if (result['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('✅ Producto actualizado'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('Producto actualizado'), backgroundColor: Colors.green),
         );
         Navigator.pop(context, true);
       } else {

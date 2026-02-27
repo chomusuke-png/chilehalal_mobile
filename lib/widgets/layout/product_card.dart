@@ -114,7 +114,7 @@ class _ProductCardState extends State<ProductCard> {
     if (mounted) {
       if (result['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Producto eliminado. Desliza hacia abajo para actualizar.'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('Producto eliminado.'), backgroundColor: Colors.green),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

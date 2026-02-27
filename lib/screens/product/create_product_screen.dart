@@ -115,7 +115,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
             content: Text(
               _userRole == 'user' 
                 ? 'Solicitud enviada a revisión' 
-                : 'Producto creado exitosamente'
+                : 'Producto creado'
             ), 
             backgroundColor: Colors.green
           ),
