@@ -5,6 +5,7 @@ import 'package:chilehalal_mobile/screens/product/product_screen.dart';
 import 'package:chilehalal_mobile/screens/product/edit_product_screen.dart';
 import 'package:chilehalal_mobile/services/auth_service.dart';
 import 'package:chilehalal_mobile/services/product_service.dart';
+import 'package:chilehalal_mobile/services/recent_products_service.dart';
 
 class ProductCard extends StatefulWidget {
   final Map<String, dynamic> product;
@@ -113,6 +114,9 @@ class _ProductCardState extends State<ProductCard> {
 
     if (mounted) {
       if (result['success'] == true) {
+        
+        await RecentProductsService().removeProductFromRecents(productId);
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Producto eliminado.'), backgroundColor: Colors.green),
         );

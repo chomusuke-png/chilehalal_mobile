@@ -28,4 +28,16 @@ class RecentProductsService {
     final List<String> list = prefs.getStringList(_storageKey) ?? [];
     return list.map((item) => jsonDecode(item) as Map<String, dynamic>).toList();
   }
+
+  Future<void> removeProductFromRecents(int productId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String> currentList = prefs.getStringList(_storageKey) ?? [];
+
+    currentList.removeWhere((item) {
+      final decoded = jsonDecode(item);
+      return decoded['id'] == productId;
+    });
+
+    await prefs.setStringList(_storageKey, currentList);
+  }
 }

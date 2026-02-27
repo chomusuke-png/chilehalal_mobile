@@ -27,7 +27,6 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
   String _selectedStatus = 'doubt';
   bool _isLoading = false;
   bool _isPartner = false;
-  String? _userRole;
   List<String> _myBrands = [];
   
   File? _selectedImage;
@@ -58,7 +57,6 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
         _availableCategories = categories;
         
         final role = user?['role'];
-        _userRole = role;
         
         if (role == 'partner') {
           _isPartner = true;
