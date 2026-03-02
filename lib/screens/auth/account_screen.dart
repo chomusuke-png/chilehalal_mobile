@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chilehalal_mobile/services/auth_service.dart';
+import 'package:chilehalal_mobile/services/favorite_service.dart';
 import 'package:chilehalal_mobile/screens/auth/login_screen.dart';
 import 'package:chilehalal_mobile/screens/auth/edit_profile_screen.dart';
+import 'package:chilehalal_mobile/widgets/layout/product_grid.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -13,10 +15,14 @@ class AccountScreen extends StatefulWidget {
 
 class _AccountScreenState extends State<AccountScreen> {
   final AuthService _authService = AuthService();
+  final FavoriteService _favoriteService = FavoriteService();
   
   bool _isLoading = true;
   bool _isLoggedIn = false;
   Map<String, dynamic>? _userData;
+  
+  List<dynamic> _favoriteProducts = [];
+  bool _isLoadingFavorites = false;
 
   @override
   void initState() {
@@ -36,6 +42,7 @@ class _AccountScreenState extends State<AccountScreen> {
           _userData = userToUse;
           _isLoading = false;
         });
+        _loadFavorites();
       }
     } else {
       if (mounted) {
@@ -44,6 +51,23 @@ class _AccountScreenState extends State<AccountScreen> {
           _userData = null;
           _isLoading = false;
         });
+      }
+    }
+  }
+
+  Future<void> _loadFavorites() async {
+    setState(() => _isLoadingFavorites = true);
+    try {
+      final favs = await _favoriteService.getFavorites();
+      if (mounted) {
+        setState(() {
+          _favoriteProducts = favs ?? [];
+          _isLoadingFavorites = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingFavorites = false);
       }
     }
   }
@@ -170,7 +194,7 @@ class _AccountScreenState extends State<AccountScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mi Perfil'),
+        title: const Text('Mi Perfil', style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
         foregroundColor: Colors.black,
         actions: [
@@ -208,90 +232,136 @@ class _AccountScreenState extends State<AccountScreen> {
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 20.0),
+            padding: const EdgeInsets.symmetric(vertical: 20.0),
             child: SizedBox(
               width: double.infinity,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Container(
-                    width: 130,
-                    height: 130,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3), width: 4),
-                      boxShadow: [
-                        BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 5))
-                      ],
-                    ),
-                    child: ClipOval(
-                      child: profileImage != null && profileImage.isNotEmpty
-                          ? CachedNetworkImage(
-                              imageUrl: profileImage,
-                              fit: BoxFit.cover,
-                              memCacheWidth: 300,
-                              placeholder: (context, url) => Container(
-                                color: Colors.grey[200],
-                                child: const Center(child: CircularProgressIndicator()),
-                              ),
-                              errorWidget: (context, url, error) => Container(
-                                color: colorScheme.primary,
-                                child: const Icon(Icons.person, size: 60, color: Colors.white),
-                              ),
-                            )
-                          : Container(
-                              color: colorScheme.primary,
-                              child: const Icon(Icons.person, size: 60, color: Colors.white),
-                            ),
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 24),
-                  
-                  Text(
-                    _userData?['name'] ?? 'Usuario',
-                    style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _userData?['email'] ?? 'correo@ejemplo.com',
-                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                    textAlign: TextAlign.center,
-                  ),
-                  
-                  if (phone.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Column(
                       children: [
-                        Icon(Icons.phone, size: 16, color: Colors.grey[500]),
-                        const SizedBox(width: 6),
-                        Text(
-                          phone,
-                          style: TextStyle(fontSize: 15, color: Colors.grey[600]),
+                        const SizedBox(height: 20),
+                        Container(
+                          width: 130,
+                          height: 130,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3), width: 4),
+                            boxShadow: [
+                              BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 5))
+                            ],
+                          ),
+                          child: ClipOval(
+                            child: profileImage != null && profileImage.isNotEmpty
+                                ? CachedNetworkImage(
+                                    imageUrl: profileImage,
+                                    fit: BoxFit.cover,
+                                    memCacheWidth: 300,
+                                    placeholder: (context, url) => Container(
+                                      color: Colors.grey[200],
+                                      child: const Center(child: CircularProgressIndicator()),
+                                    ),
+                                    errorWidget: (context, url, error) => Container(
+                                      color: colorScheme.primary,
+                                      child: const Icon(Icons.person, size: 60, color: Colors.white),
+                                    ),
+                                  )
+                                : Container(
+                                    color: colorScheme.primary,
+                                    child: const Icon(Icons.person, size: 60, color: Colors.white),
+                                  ),
+                          ),
                         ),
+                        
+                        const SizedBox(height: 24),
+                        
+                        Text(
+                          _userData?['name'] ?? 'Usuario',
+                          style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _userData?['email'] ?? 'correo@ejemplo.com',
+                          style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                          textAlign: TextAlign.center,
+                        ),
+                        
+                        if (phone.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.phone, size: 16, color: Colors.grey[500]),
+                              const SizedBox(width: 6),
+                              Text(
+                                phone,
+                                style: TextStyle(fontSize: 15, color: Colors.grey[600]),
+                              ),
+                            ],
+                          ),
+                        ],
+                        
+                        const SizedBox(height: 20),
+                        
+                        Chip(
+                          label: Text(
+                            'Rol: ${_userData?['role'] ?? 'user'}'.toUpperCase(),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
+                          labelStyle: TextStyle(color: colorScheme.primary),
+                          avatar: Icon(Icons.verified_user, size: 18, color: colorScheme.primary),
+                          side: BorderSide.none,
+                        ),
+
+                        if (isPartner) ...[
+                          const SizedBox(height: 30),
+                          _buildPartnerSection(colorScheme),
+                        ],
                       ],
                     ),
-                  ],
-                  
-                  const SizedBox(height: 20),
-                  
-                  Chip(
-                    label: Text(
-                      'Rol: ${_userData?['role'] ?? 'user'}'.toUpperCase(),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
-                    labelStyle: TextStyle(color: colorScheme.primary),
-                    avatar: Icon(Icons.verified_user, size: 18, color: colorScheme.primary),
-                    side: BorderSide.none,
                   ),
 
-                  if (isPartner) ...[
-                    const SizedBox(height: 30),
-                    _buildPartnerSection(colorScheme),
-                  ],
+                  const SizedBox(height: 30),
+                  const Divider(thickness: 1),
+                  const SizedBox(height: 20),
+                  
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Row(
+                      children: [
+                        Icon(Icons.favorite, color: Colors.red[400]),
+                        const SizedBox(width: 10),
+                        const Text('Mis Favoritos', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  _isLoadingFavorites
+                      ? const Padding(
+                          padding: EdgeInsets.all(40.0),
+                          child: Center(child: CircularProgressIndicator()),
+                        )
+                      : _favoriteProducts.isEmpty
+                          ? Padding(
+                              padding: const EdgeInsets.all(40.0),
+                              child: Text(
+                                'Aún no tienes productos guardados en favoritos.',
+                                style: TextStyle(color: Colors.grey[500], fontStyle: FontStyle.italic, fontSize: 16),
+                                textAlign: TextAlign.center,
+                              ),
+                            )
+                          : ProductGrid(
+                              products: _favoriteProducts,
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                            ),
+                            
+                  const SizedBox(height: 40),
                 ],
               ),
             ),

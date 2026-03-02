@@ -4,7 +4,6 @@ import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:chilehalal_mobile/screens/home/home_screen.dart';
 import 'package:chilehalal_mobile/screens/catalog/catalog_screen.dart';
 import 'package:chilehalal_mobile/screens/scanner/scanner_screen.dart';
-import 'package:chilehalal_mobile/screens/favorites/favorites_screen.dart';
 import 'package:chilehalal_mobile/screens/auth/account_screen.dart';
 
 final GlobalKey<MainWrapperState> mainWrapperKey = GlobalKey<MainWrapperState>();
@@ -23,7 +22,6 @@ class MainWrapperState extends State<MainWrapper> {
     HomeScreen(),
     CatalogScreen(),
     ScannerScreen(),
-    FavoritesScreen(),
     AccountScreen(),
   ];
 
@@ -86,10 +84,6 @@ class MainWrapperState extends State<MainWrapper> {
                   icon: Icons.barcode_reader,
                   iconSize: 26,
                   text: 'Escanear',
-                ),
-                GButton(
-                  icon: FontAwesomeIcons.solidHeart,
-                  text: 'Favoritos',
                 ),
                 GButton(
                   icon: FontAwesomeIcons.solidUser,

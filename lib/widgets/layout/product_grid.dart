@@ -1,25 +1,33 @@
 import 'package:flutter/material.dart';
-import 'product_card.dart';
+import 'package:chilehalal_mobile/widgets/layout/product_card.dart';
 
 class ProductGrid extends StatelessWidget {
   final List<dynamic> products;
+  final bool shrinkWrap;
+  final ScrollPhysics? physics;
 
-  const ProductGrid({super.key, required this.products});
+  const ProductGrid({
+    super.key, 
+    required this.products,
+    this.shrinkWrap = false,
+    this.physics,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      shrinkWrap: shrinkWrap,
+      physics: physics ?? const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 0.70,
+        childAspectRatio: 0.72,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
       ),
       itemCount: products.length,
       itemBuilder: (context, index) {
-        final product = products[index] as Map<String, dynamic>;
-        return ProductCard(product: product);
+        return ProductCard(product: products[index]);
       },
     );
   }
