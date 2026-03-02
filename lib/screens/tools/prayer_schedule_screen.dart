@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:chilehalal_mobile/services/prayer_service.dart';
 
 class PrayerScheduleScreen extends StatefulWidget {
@@ -18,11 +19,37 @@ class _PrayerScheduleScreenState extends State<PrayerScheduleScreen> {
   @override
   void initState() {
     super.initState();
-    _loadTimes();
+    _checkGpsAndLoad();
   }
 
-  Future<void> _loadTimes() async {
-    final times = await PrayerService().getPrayerTimes();
+  Future<void> _checkGpsAndLoad({bool forceRefresh = false}) async {
+    setState(() {
+      _isLoading = true;
+      _hasError = false;
+    });
+
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    
+    if (!serviceEnabled && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('GPS desactivado. Usando ubicación por defecto (Santiago).'),
+          backgroundColor: Colors.orange[800],
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+          action: SnackBarAction(
+            label: 'AJUSTES',
+            textColor: Colors.white,
+            onPressed: () {
+              Geolocator.openLocationSettings();
+            },
+          ),
+        ),
+      );
+    }
+
+    final times = await PrayerService().getPrayerTimes(forceRefresh: forceRefresh);
+    
     if (mounted) {
       if (times != null) {
         setState(() {
@@ -117,9 +144,21 @@ class _PrayerScheduleScreenState extends State<PrayerScheduleScreen> {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Horario de Oraciones'),
+        title: const Text('Horario de Oraciones', style: TextStyle(fontWeight: FontWeight.bold)),
         foregroundColor: colorScheme.onSurface,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.my_location),
+            tooltip: 'Actualizar ubicación',
+            onPressed: () {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              
+              _checkGpsAndLoad(forceRefresh: true);
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -132,13 +171,7 @@ class _PrayerScheduleScreenState extends State<PrayerScheduleScreen> {
                       const SizedBox(height: 16),
                       Text('Error de conexión', style: TextStyle(color: Colors.grey[600], fontSize: 18)),
                       TextButton(
-                        onPressed: () {
-                          setState(() {
-                            _isLoading = true;
-                            _hasError = false;
-                          });
-                          _loadTimes();
-                        }, 
+                        onPressed: () => _checkGpsAndLoad(forceRefresh: true), 
                         child: const Text('Reintentar')
                       )
                     ],
@@ -159,14 +192,20 @@ class _PrayerScheduleScreenState extends State<PrayerScheduleScreen> {
                           children: [
                             Icon(Icons.location_on, color: colorScheme.primary),
                             const SizedBox(width: 10),
-                            const Text('Santiago, Chile', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                            Expanded(
+                              child: Text(
+                                PrayerService().currentCity,
+                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                           ],
                         ),
                       ),
                       const SizedBox(height: 30),
                       
                       _buildPrayerTile('Fajr', _prayerTimes!['Fajr']!, FontAwesomeIcons.cloudMoon, _nextPrayer == 'Fajr'),
-                      _buildPrayerTile('Amanecer', _prayerTimes!['Sunrise']!, FontAwesomeIcons.sun, _nextPrayer == 'Sunrise'),
+                      _buildPrayerTile('Amanecer (Sunrise)', _prayerTimes!['Sunrise']!, FontAwesomeIcons.sun, _nextPrayer == 'Sunrise'),
                       _buildPrayerTile('Dhuhr', _prayerTimes!['Dhuhr']!, FontAwesomeIcons.solidSun, _nextPrayer == 'Dhuhr'),
                       _buildPrayerTile('Asr', _prayerTimes!['Asr']!, FontAwesomeIcons.cloudSun, _nextPrayer == 'Asr'),
                       _buildPrayerTile('Maghrib', _prayerTimes!['Maghrib']!, FontAwesomeIcons.solidMoon, _nextPrayer == 'Maghrib'),

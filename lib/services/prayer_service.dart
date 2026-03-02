@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:chilehalal_mobile/services/notification_service.dart';
 
 class PrayerService {
@@ -8,13 +10,52 @@ class PrayerService {
   PrayerService._internal();
 
   Map<String, String>? _cachedPrayerTimes;
+  
+  String currentCity = "Santiago, Chile"; 
 
   Future<Map<String, String>?> getPrayerTimes({bool forceRefresh = false}) async {
     if (_cachedPrayerTimes != null && !forceRefresh) {
       return _cachedPrayerTimes;
     }
 
-    const String apiUrl = "https://api.aladhan.com/v1/timingsByCity?city=Santiago&country=Chile&method=3";
+    double lat = -33.4489; 
+    double lng = -70.6693;
+
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (serviceEnabled) {
+        
+        LocationPermission permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied) {
+          permission = await Geolocator.requestPermission();
+        }
+
+        if (permission == LocationPermission.whileInUse || permission == LocationPermission.always) {
+          Position position = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.low,
+          );
+          
+          lat = position.latitude;
+          lng = position.longitude;
+
+          try {
+            List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
+            if (placemarks.isNotEmpty) {
+              final place = placemarks.first;
+              final city = place.locality ?? place.subAdministrativeArea ?? "Ciudad desconocida";
+              final country = place.country ?? "";
+              currentCity = "$city, $country";
+            }
+          } catch (e) {
+            currentCity = "Ubicación actual";
+          }
+        }
+      }
+    } catch (e) {
+      // e
+    }
+
+    final String apiUrl = "https://api.aladhan.com/v1/timings?latitude=$lat&longitude=$lng&method=3";
     
     try {
       final response = await http.get(Uri.parse(apiUrl));
@@ -32,36 +73,39 @@ class PrayerService {
           "Isha": timings['Isha'],
         };
         
-        _scheduleDailyNotifications(_cachedPrayerTimes!);
+        await _scheduleDailyNotifications(_cachedPrayerTimes!);
         
         return _cachedPrayerTimes;
       }
     } catch (e) {
-      // null
+      // e
     }
     return null;
   }
 
-  void _scheduleDailyNotifications(Map<String, String> prayerTimes) {
+  Future<void> _scheduleDailyNotifications(Map<String, String> prayerTimes) async {
     final now = DateTime.now();
     final orderedKeys = const ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
     
-    NotificationService().cancelAllNotifications();
+    await NotificationService().cancelAllNotifications();
 
     int notificationId = 100;
     
     for (var key in orderedKeys) {
       final timeStr = prayerTimes[key]!;
-      final prayerDate = _parseTime(timeStr, now);
+      DateTime prayerDate = _parseTime(timeStr, now);
 
-      if (prayerDate.isAfter(now)) {
-        NotificationService().scheduleNotification(
-          id: notificationId,
-          title: 'Hora de Oración: $key',
-          body: 'Es el momento de la oración de $key.',
-          scheduledTime: prayerDate,
-        );
+      if (prayerDate.isBefore(now)) {
+        prayerDate = prayerDate.add(const Duration(days: 1));
       }
+
+      await NotificationService().scheduleNotification(
+        id: notificationId,
+        title: 'Hora de Oración: $key',
+        body: 'Es el momento de la oración de $key.',
+        scheduledTime: prayerDate,
+      );
+      
       notificationId++;
     }
   }
