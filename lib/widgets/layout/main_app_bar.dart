@@ -17,6 +17,8 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return AppBar(
+      iconTheme: IconThemeData(color: colorScheme.primary), 
+      
       title: Image.asset(
               'assets/images/chilehalal-isotipo.png',
               height: 40,

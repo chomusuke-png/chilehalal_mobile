@@ -144,7 +144,7 @@ class _PrayerScheduleScreenState extends State<PrayerScheduleScreen> {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Horario de Oraciones', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Horario de Oraciones'),
         foregroundColor: colorScheme.onSurface,
         elevation: 0,
         actions: [

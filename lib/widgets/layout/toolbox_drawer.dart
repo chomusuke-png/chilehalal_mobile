@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:chilehalal_mobile/screens/tools/about_screen.dart';
+import 'package:chilehalal_mobile/screens/tools/halal_guide_screen.dart';
 import 'package:chilehalal_mobile/screens/tools/prayer_schedule_screen.dart';
 
 class ToolboxDrawer extends StatelessWidget {
@@ -58,7 +60,10 @@ class ToolboxDrawer extends StatelessWidget {
                   title: 'Guía Halal',
                   onTap: () {
                     Navigator.pop(context);
-                    // TODO: Navegar a información
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const HalalGuideScreen()),
+                    );
                   },
                 ),
                 _buildDrawerItem(
@@ -93,6 +98,10 @@ class ToolboxDrawer extends StatelessWidget {
                   title: 'Acerca de ChileHalal',
                   onTap: () {
                     Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AboutScreen()),
+                    );
                   },
                 ),
               ],
