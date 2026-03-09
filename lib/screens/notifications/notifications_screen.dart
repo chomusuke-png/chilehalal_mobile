@@ -22,42 +22,68 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Future<void> _loadNotifications() async {
-    final msgs = await _inboxService.getMessages();
-    if (mounted) {
-      setState(() {
-        _notifications = msgs;
-        _isLoading = false;
-      });
+    try {
+      final inboxMessages = await _inboxService.getMessages();
+      if (mounted) {
+        setState(() {
+          _notifications = inboxMessages;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al cargar la bandeja de entrada')),
+        );
+      }
     }
   }
 
   Future<void> _deleteNotification(String id) async {
-    await _inboxService.deleteMessage(id);
-    _loadNotifications();
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Notificación eliminada'), duration: Duration(seconds: 2)),
-      );
+    try {
+      await _inboxService.deleteMessage(id);
+      await _loadNotifications();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Notificación eliminada'), duration: Duration(seconds: 2)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al eliminar la notificación')),
+        );
+      }
     }
   }
 
   Future<void> _clearAll() async {
-    await _inboxService.clearAll();
-    _loadNotifications();
+    try {
+      await _inboxService.clearAll();
+      await _loadNotifications();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al limpiar la bandeja')),
+        );
+      }
+    }
   }
 
   Future<void> _createTestNotification() async {
-    const title = '¡Bienvenido a ChileHalal!';
-    const body = 'Tu cuenta ha sido configurada correctamente. Gracias por preferirnos.';
+    const notificationTitle = '¡Bienvenido a ChileHalal!';
+    const notificationBody = 'Tu cuenta ha sido configurada correctamente. Gracias por preferirnos.';
+    final uniqueId = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     
-    await _inboxService.addMessage(title, body);
-    
-    // 2. Opcional: Mostramos una alerta en el sistema operativo ahora mismo
-    // await NotificationService().flutterLocalNotificationsPlugin.show(
-    //   999, title, body, const NotificationDetails(android: AndroidNotificationDetails('test', 'Pruebas', importance: Importance.max)),
-    // );
+    await NotificationService().showInboxNotification(
+      id: uniqueId,
+      title: notificationTitle,
+      body: notificationBody,
+    );
 
-    _loadNotifications();
+    await _loadNotifications();
   }
 
   @override
@@ -134,12 +160,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       itemCount: _notifications.length,
       separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
-        final notif = _notifications[index];
-        final date = DateTime.parse(notif['date']);
+        final notificationItem = _notifications[index];
+        final date = DateTime.parse(notificationItem['date']);
         final formattedDate = "${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}";
 
         return Dismissible(
-          key: Key(notif['id']),
+          key: Key(notificationItem['id']),
           direction: DismissDirection.endToStart,
           background: Container(
             alignment: Alignment.centerRight,
@@ -150,7 +176,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
             child: const Icon(Icons.delete, color: Colors.white),
           ),
-          onDismissed: (direction) => _deleteNotification(notif['id']),
+          onDismissed: (direction) => _deleteNotification(notificationItem['id']),
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -182,12 +208,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        notif['title'],
+                        notificationItem['title'],
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        notif['body'],
+                        notificationItem['body'],
                         style: TextStyle(color: Colors.grey[700], height: 1.4),
                       ),
                       const SizedBox(height: 8),
