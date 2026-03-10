@@ -174,7 +174,7 @@ class _PrayerCountdownState extends State<PrayerCountdown> with SingleTickerProv
 
     // Definimos medidas para cálculos de posición
     const double widgetHeight = 110;
-    const double astroIconSize = 26.0;
+    const double astroIconSize = 40.0;
 
     return Material(
       color: Colors.transparent,
