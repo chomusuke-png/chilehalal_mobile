@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:chilehalal_mobile/services/prayer_service.dart';
+import 'package:chilehalal_mobile/widgets/common/prayer_countdown.dart'; 
 
 class PrayerScheduleScreen extends StatefulWidget {
   const PrayerScheduleScreen({super.key});
@@ -37,6 +38,7 @@ class _PrayerScheduleScreenState extends State<PrayerScheduleScreen> {
           backgroundColor: Colors.orange[800],
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 4),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           action: SnackBarAction(
             label: 'AJUSTES',
             textColor: Colors.white,
@@ -89,50 +91,90 @@ class _PrayerScheduleScreenState extends State<PrayerScheduleScreen> {
     return DateTime(now.year, now.month, now.day, int.parse(parts[0]), int.parse(parts[1]));
   }
 
-  Widget _buildPrayerTile(String title, String time, IconData icon, bool isNext) {
+  // Se añadió el parámetro 'iconColor'
+  Widget _buildPrayerTile(String title, String time, IconData icon, Color iconColor, bool isNext) {
     final colorScheme = Theme.of(context).colorScheme;
     
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      decoration: BoxDecoration(
-        color: isNext ? colorScheme.primary : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          )
-        ],
-        border: isNext ? null : Border.all(color: Colors.grey[200]!),
-      ),
-      child: Row(
-        children: [
-          FaIcon(
-            icon, 
-            color: isNext ? Colors.white : colorScheme.primary,
-            size: 24,
-          ),
-          const SizedBox(width: 20),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: isNext ? FontWeight.bold : FontWeight.w600,
-              color: isNext ? Colors.white : Colors.black87,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        decoration: BoxDecoration(
+          color: isNext ? colorScheme.primary : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            if (isNext)
+              BoxShadow(
+                color: colorScheme.primary.withValues(alpha: 0.3),
+                blurRadius: 15,
+                offset: const Offset(0, 6),
+              )
+            else
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+          ],
+          border: isNext ? null : Border.all(color: Colors.grey[200]!, width: 1),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: IntrinsicHeight(
+            child: Row(
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  width: isNext ? 6 : 0,
+                  color: Colors.yellow[600], 
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            // Si es el próximo, el fondo del ícono es blanco puro. Si no, es del color del ícono al 15%
+                            color: isNext ? Colors.white : iconColor.withValues(alpha: 0.15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: FaIcon(
+                            icon, 
+                            color: iconColor, // El ícono siempre mantiene su color temático
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: isNext ? FontWeight.bold : FontWeight.w600,
+                            color: isNext ? Colors.white : Colors.black87,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          time,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900, 
+                            color: isNext ? Colors.white : Colors.black87,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const Spacer(),
-          Text(
-            time,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: isNext ? Colors.white : Colors.black87,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -142,22 +184,30 @@ class _PrayerScheduleScreenState extends State<PrayerScheduleScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: Colors.grey[50], 
       appBar: AppBar(
         title: const Text('Horario de Oraciones'),
         foregroundColor: colorScheme.onSurface,
         elevation: 0,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.my_location),
-            tooltip: 'Actualizar ubicación',
-            onPressed: () {
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-              
-              _checkGpsAndLoad(forceRefresh: true);
-            },
+          Container(
+            margin: const EdgeInsets.only(right: 12, top: 8, bottom: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 5)
+              ]
+            ),
+            child: IconButton(
+              icon: Icon(Icons.my_location, color: colorScheme.primary, size: 20),
+              tooltip: 'Actualizar ubicación',
+              onPressed: () {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                _checkGpsAndLoad(forceRefresh: true);
+              },
+            ),
           ),
-          const SizedBox(width: 8),
         ],
       ),
       body: _isLoading
@@ -170,47 +220,102 @@ class _PrayerScheduleScreenState extends State<PrayerScheduleScreen> {
                       Icon(Icons.wifi_off, size: 60, color: Colors.grey[400]),
                       const SizedBox(height: 16),
                       Text('Error de conexión', style: TextStyle(color: Colors.grey[600], fontSize: 18)),
-                      TextButton(
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
                         onPressed: () => _checkGpsAndLoad(forceRefresh: true), 
-                        child: const Text('Reintentar')
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Reintentar')
                       )
                     ],
                   ),
                 )
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.location_on, color: colorScheme.primary),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                PrayerService().currentCity,
-                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                                overflow: TextOverflow.ellipsis,
+              : RefreshIndicator(
+                  onRefresh: () => _checkGpsAndLoad(forceRefresh: true),
+                  color: colorScheme.primary,
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(), 
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(100), 
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.03),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
+                              )
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primary.withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(Icons.location_on, color: colorScheme.primary, size: 16),
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  PrayerService().currentCity,
+                                  style: const TextStyle(
+                                    fontSize: 15, 
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 30),
-                      
-                      _buildPrayerTile('Fajr', _prayerTimes!['Fajr']!, FontAwesomeIcons.cloudMoon, _nextPrayer == 'Fajr'),
-                      _buildPrayerTile('Amanecer (Sunrise)', _prayerTimes!['Sunrise']!, FontAwesomeIcons.sun, _nextPrayer == 'Sunrise'),
-                      _buildPrayerTile('Dhuhr', _prayerTimes!['Dhuhr']!, FontAwesomeIcons.solidSun, _nextPrayer == 'Dhuhr'),
-                      _buildPrayerTile('Asr', _prayerTimes!['Asr']!, FontAwesomeIcons.cloudSun, _nextPrayer == 'Asr'),
-                      _buildPrayerTile('Maghrib', _prayerTimes!['Maghrib']!, FontAwesomeIcons.solidMoon, _nextPrayer == 'Maghrib'),
-                      _buildPrayerTile('Isha', _prayerTimes!['Isha']!, FontAwesomeIcons.moon, _nextPrayer == 'Isha'),
-                    ],
+                        
+                        const SizedBox(height: 24),
+                        
+                        const AbsorbPointer(
+                          absorbing: true, 
+                          child: PrayerCountdown(),
+                        ),
+                        
+                        const SizedBox(height: 32),
+                        
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8.0, bottom: 12.0),
+                          child: Text(
+                            'Horarios del día',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[600],
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ),
+                        
+                        // Lista con los colores temáticos pasados como parámetro
+                        _buildPrayerTile('Fajr', _prayerTimes!['Fajr']!, FontAwesomeIcons.cloudMoon, Colors.indigo[400]!, _nextPrayer == 'Fajr'),
+                        _buildPrayerTile('Amanecer', _prayerTimes!['Sunrise']!, FontAwesomeIcons.sun, Colors.orange[400]!, _nextPrayer == 'Sunrise'),
+                        _buildPrayerTile('Dhuhr', _prayerTimes!['Dhuhr']!, FontAwesomeIcons.solidSun, Colors.amber[500]!, _nextPrayer == 'Dhuhr'),
+                        _buildPrayerTile('Asr', _prayerTimes!['Asr']!, FontAwesomeIcons.cloudSun, Colors.deepOrange[400]!, _nextPrayer == 'Asr'),
+                        _buildPrayerTile('Maghrib', _prayerTimes!['Maghrib']!, FontAwesomeIcons.solidMoon, Colors.purple[400]!, _nextPrayer == 'Maghrib'),
+                        _buildPrayerTile('Isha', _prayerTimes!['Isha']!, FontAwesomeIcons.moon, Colors.blue[800]!, _nextPrayer == 'Isha'),
+                        
+                        const SizedBox(height: 20),
+                      ],
+                    ),
                   ),
                 ),
     );
