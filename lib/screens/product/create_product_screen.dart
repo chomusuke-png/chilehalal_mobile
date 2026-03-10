@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:chilehalal_mobile/services/product_service.dart';
 import 'package:chilehalal_mobile/services/auth_service.dart';
+import 'package:chilehalal_mobile/utils/image_picker_helper.dart';
 
 class CreateProductScreen extends StatefulWidget {
   final String? scannedBarcode;
@@ -43,6 +44,15 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
     _loadInitialData();
   }
 
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _brandCtrl.dispose();
+    _barcodeCtrl.dispose();
+    _descriptionCtrl.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadInitialData() async {
     final results = await Future.wait([
       _authService.getLocalUser(),
@@ -71,17 +81,46 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
     }
   }
 
-  Future<void> _pickImage() async {
-    final XFile? image = await _picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 70,
-      maxWidth: 800,
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: source,
+        imageQuality: 70,
+        maxWidth: 800,
+      );
+      
+      if (image != null) {
+        setState(() {
+          _selectedImage = File(image.path);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al acceder a la cámara o galería')),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleImageSelection() async {
+    final action = await ImagePickerHelper.showActionSheet(
+      context, 
+      hasExistingImage: _selectedImage != null, 
     );
-    
-    if (image != null) {
-      setState(() {
-        _selectedImage = File(image.path);
-      });
+
+    if (action == null) return;
+
+    switch (action) {
+      case ImagePickerAction.camera:
+        _pickImage(ImageSource.camera);
+        break;
+      case ImagePickerAction.gallery:
+        _pickImage(ImageSource.gallery);
+        break;
+      case ImagePickerAction.delete:
+        setState(() => _selectedImage = null);
+        break;
     }
   }
 
@@ -106,9 +145,9 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
       categories: _selectedCategoryIds,
     );
 
-    setState(() => _isLoading = false);
-
     if (mounted) {
+      setState(() => _isLoading = false);
+
       if (result['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -166,7 +205,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
 
               Center(
                 child: GestureDetector(
-                  onTap: _pickImage,
+                  onTap: _handleImageSelection,
                   child: Container(
                     height: 150,
                     width: 150,

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chilehalal_mobile/services/product_service.dart';
+import 'package:chilehalal_mobile/utils/image_picker_helper.dart';
 
 class EditProductScreen extends StatefulWidget {
   final Map<String, dynamic> productData;
@@ -25,6 +26,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
 
   String _selectedStatus = 'doubt';
   bool _isLoading = false;
+  bool _isImageDeleted = false;
   
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
@@ -52,16 +54,53 @@ class _EditProductScreenState extends State<EditProductScreen> {
     super.dispose();
   }
 
-  Future<void> _pickImage() async {
-    final XFile? image = await _picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 70,
-      maxWidth: 1000,
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: source,
+        imageQuality: 70,
+        maxWidth: 1000,
+      );
+      if (image != null) {
+        setState(() {
+          _selectedImage = File(image.path);
+          _isImageDeleted = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al acceder a la cámara o galería')),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleImageSelection() async {
+    final currentImage = widget.productData['image_url'];
+    final bool hasExistingImage = (currentImage != null && currentImage.toString().isNotEmpty);
+    final bool hasImageToShow = _selectedImage != null || (hasExistingImage && !_isImageDeleted);
+
+    final action = await ImagePickerHelper.showActionSheet(
+      context, 
+      hasExistingImage: hasImageToShow,
     );
-    if (image != null) {
-      setState(() {
-        _selectedImage = File(image.path);
-      });
+
+    if (action == null) return;
+
+    switch (action) {
+      case ImagePickerAction.camera:
+        _pickImage(ImageSource.camera);
+        break;
+      case ImagePickerAction.gallery:
+        _pickImage(ImageSource.gallery);
+        break;
+      case ImagePickerAction.delete:
+        setState(() {
+          _selectedImage = null;
+          _isImageDeleted = true;
+        });
+        break;
     }
   }
 
@@ -74,6 +113,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
     if (_selectedImage != null) {
       final bytes = await _selectedImage!.readAsBytes();
       base64Image = base64Encode(bytes);
+    } else if (_isImageDeleted) {
+      base64Image = 'DELETE';
     }
 
     final productId = widget.productData['id'] as int;
@@ -88,9 +129,9 @@ class _EditProductScreenState extends State<EditProductScreen> {
       imageBase64: base64Image,
     );
 
-    setState(() => _isLoading = false);
-
     if (mounted) {
+      setState(() => _isLoading = false);
+
       if (result['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Producto actualizado'), backgroundColor: Colors.green),
@@ -123,33 +164,57 @@ class _EditProductScreenState extends State<EditProductScreen> {
             children: [
               Center(
                 child: GestureDetector(
-                  onTap: _pickImage,
-                  child: Container(
-                    height: 200,
-                    width: 200,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3), width: 2),
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: _selectedImage != null
-                        ? Image.file(_selectedImage!, fit: BoxFit.cover)
-                        : (currentImage != null && currentImage.toString().isNotEmpty)
-                            ? CachedNetworkImage(
-                                imageUrl: currentImage,
-                                fit: BoxFit.cover,
-                                placeholder: (_, __) => const Center(child: CircularProgressIndicator()),
-                                errorWidget: (_, __, ___) => const Icon(Icons.image, size: 50, color: Colors.grey),
-                              )
-                            : Column(
+                  onTap: _handleImageSelection,
+                  child: Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      Container(
+                        height: 200,
+                        width: 200,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3), width: 2),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: _isImageDeleted 
+                            ? Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(Icons.add_a_photo, size: 40, color: colorScheme.primary),
                                   const SizedBox(height: 8),
-                                  const Text('Cambiar Foto', style: TextStyle(fontWeight: FontWeight.bold)),
+                                  const Text('Añadir Foto', style: TextStyle(fontWeight: FontWeight.bold)),
                                 ],
-                              ),
+                              )
+                            : _selectedImage != null
+                                ? Image.file(_selectedImage!, fit: BoxFit.cover)
+                                : (currentImage != null && currentImage.toString().isNotEmpty)
+                                    ? CachedNetworkImage(
+                                        imageUrl: currentImage,
+                                        fit: BoxFit.cover,
+                                        placeholder: (_, __) => const Center(child: CircularProgressIndicator()),
+                                        errorWidget: (_, __, ___) => const Icon(Icons.image, size: 50, color: Colors.grey),
+                                      )
+                                    : Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.add_a_photo, size: 40, color: colorScheme.primary),
+                                          const SizedBox(height: 8),
+                                          const Text('Añadir Foto', style: TextStyle(fontWeight: FontWeight.bold)),
+                                        ],
+                                      ),
+                      ),
+                      Container(
+                        margin: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: const Icon(Icons.edit, color: Colors.white, size: 20),
+                      ),
+                    ],
                   ),
                 ),
               ),

@@ -17,6 +17,7 @@ class MainWrapper extends StatefulWidget {
 
 class MainWrapperState extends State<MainWrapper> {
   int _selectedIndex = 0;
+  late PageController _pageController;
 
   final List<Widget> _screens = const [
     HomeScreen(),
@@ -25,12 +26,26 @@ class MainWrapperState extends State<MainWrapper> {
     AccountScreen(),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _selectedIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   void jumpToTab(int index, {Widget? screenToPush}) {
     if (mounted) {
       setState(() {
         _selectedIndex = index;
       });
       
+      _pageController.jumpToPage(index);
+
       if (screenToPush != null) {
         Future.delayed(const Duration(milliseconds: 100), () {
           Navigator.of(context).push(MaterialPageRoute(builder: (_) => screenToPush));
@@ -44,8 +59,14 @@ class MainWrapperState extends State<MainWrapper> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
+      body: PageView(
+        controller: _pageController,
+        physics: const BouncingScrollPhysics(), 
+        onPageChanged: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
         children: _screens,
       ),
       bottomNavigationBar: Container(
@@ -95,6 +116,8 @@ class MainWrapperState extends State<MainWrapper> {
                 setState(() {
                   _selectedIndex = index;
                 });
+                
+                _pageController.jumpToPage(index);
               },
             ),
           ),

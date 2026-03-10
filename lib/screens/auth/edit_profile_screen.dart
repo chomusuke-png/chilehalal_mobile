@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chilehalal_mobile/services/auth_service.dart';
+import 'package:chilehalal_mobile/utils/image_picker_helper.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final Map<String, dynamic> userData;
@@ -21,6 +22,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _phoneCtrl;
 
   bool _isLoading = false;
+  bool _isImageDeleted = false;
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
 
@@ -38,17 +40,54 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
-  Future<void> _pickImage() async {
-    final XFile? image = await _picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 70,
-      maxWidth: 800,
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: source,
+        imageQuality: 70,
+        maxWidth: 800,
+      );
+      
+      if (image != null) {
+        setState(() {
+          _selectedImage = File(image.path);
+          _isImageDeleted = false; 
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al acceder a la cámara o galería')),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleImageSelection() async {
+    final currentImage = widget.userData['profile_image'];
+    final bool hasExistingImage = (currentImage != null && currentImage.toString().isNotEmpty);
+    final bool hasImageToShow = _selectedImage != null || (hasExistingImage && !_isImageDeleted);
+
+    final action = await ImagePickerHelper.showActionSheet(
+      context, 
+      hasExistingImage: hasImageToShow,
     );
-    
-    if (image != null) {
-      setState(() {
-        _selectedImage = File(image.path);
-      });
+
+    if (action == null) return;
+
+    switch (action) {
+      case ImagePickerAction.camera:
+        _pickImage(ImageSource.camera);
+        break;
+      case ImagePickerAction.gallery:
+        _pickImage(ImageSource.gallery);
+        break;
+      case ImagePickerAction.delete:
+        setState(() {
+          _selectedImage = null;
+          _isImageDeleted = true;
+        });
+        break;
     }
   }
 
@@ -61,6 +100,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (_selectedImage != null) {
       final bytes = await _selectedImage!.readAsBytes();
       base64Image = base64Encode(bytes);
+    } else if (_isImageDeleted) {
+      base64Image = 'DELETE';
     }
 
     final newName = _nameCtrl.text != widget.userData['name'] ? _nameCtrl.text : null;
@@ -77,9 +118,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       imageBase64: base64Image,
     );
 
-    setState(() => _isLoading = false);
-
     if (mounted) {
+      setState(() => _isLoading = false);
+
       if (result['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('✅ Perfil actualizado'), backgroundColor: Colors.green),
@@ -114,7 +155,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             children: [
               Center(
                 child: GestureDetector(
-                  onTap: _pickImage,
+                  onTap: _handleImageSelection,
                   child: Stack(
                     alignment: Alignment.bottomRight,
                     children: [
@@ -127,17 +168,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3), width: 3),
                         ),
                         child: ClipOval(
-                          child: _selectedImage != null
-                              ? Image.file(_selectedImage!, fit: BoxFit.cover)
-                              : (currentImage != null && currentImage.toString().isNotEmpty)
-                                  ? CachedNetworkImage(
-                                      imageUrl: currentImage,
-                                      fit: BoxFit.cover,
-                                      memCacheWidth: 300,
-                                      placeholder: (_, __) => const Center(child: CircularProgressIndicator()),
-                                      errorWidget: (_, __, ___) => Icon(Icons.person, size: 60, color: colorScheme.primary),
-                                    )
-                                  : Icon(Icons.person, size: 60, color: colorScheme.primary),
+                          child: _isImageDeleted 
+                              ? Icon(Icons.person, size: 60, color: colorScheme.primary)
+                              : _selectedImage != null
+                                  ? Image.file(_selectedImage!, fit: BoxFit.cover)
+                                  : (currentImage != null && currentImage.toString().isNotEmpty)
+                                      ? CachedNetworkImage(
+                                          imageUrl: currentImage,
+                                          fit: BoxFit.cover,
+                                          memCacheWidth: 300,
+                                          placeholder: (_, __) => const Center(child: CircularProgressIndicator()),
+                                          errorWidget: (_, __, ___) => Icon(Icons.person, size: 60, color: colorScheme.primary),
+                                        )
+                                      : Icon(Icons.person, size: 60, color: colorScheme.primary),
                         ),
                       ),
                       Container(
@@ -147,7 +190,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 2),
                         ),
-                        child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                        child: const Icon(Icons.edit, color: Colors.white, size: 20),
                       ),
                     ],
                   ),

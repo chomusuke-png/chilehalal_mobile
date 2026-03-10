@@ -194,7 +194,7 @@ class _AccountScreenState extends State<AccountScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mi Perfil', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Mi Perfil'),
         elevation: 0,
         foregroundColor: Colors.black,
         actions: [
