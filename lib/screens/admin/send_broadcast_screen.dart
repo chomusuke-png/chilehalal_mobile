@@ -25,6 +25,38 @@ class _SendBroadcastScreenState extends State<SendBroadcastScreen> {
   Future<void> _handleSendNotification() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.warning_rounded, color: Colors.orange),
+            SizedBox(width: 10),
+            Text('Confirmar Envío'),
+          ],
+        ),
+        content: const Text(
+          '¿Estás seguro que deseas enviar esta notificación a TODOS los usuarios de la aplicación?\n\nEsta acción es inmediata y no se puede deshacer.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Sí, enviar a todos', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
     setState(() => _isSending = true);
 
     final result = await AdminService().sendGlobalNotification(

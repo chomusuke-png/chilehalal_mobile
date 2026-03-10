@@ -92,13 +92,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
-  void _navigateToBroadcastScreen() {
-    Navigator.push(
+  Future<void> _navigateToBroadcastScreen() async {
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => const SendBroadcastScreen(),
       ),
     );
+    
+    _loadNotifications();
+
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (mounted) {
+        _loadNotifications();
+      }
+    });
   }
 
   @override
@@ -128,50 +136,60 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _notifications.isEmpty
-              ? _buildEmptyState(colorScheme)
-              : _buildList(colorScheme),
+          : RefreshIndicator(
+              onRefresh: _loadNotifications,
+              color: colorScheme.primary,
+              child: _notifications.isEmpty
+                  ? _buildEmptyState(colorScheme)
+                  : _buildList(colorScheme),
+            ),
     );
   }
 
   Widget _buildEmptyState(ColorScheme colorScheme) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: colorScheme.primary.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: FaIcon(
-              FontAwesomeIcons.bellSlash,
-              size: 60,
-              color: colorScheme.primary.withValues(alpha: 0.5),
-            ),
+    return Stack(
+      children: [
+        ListView(physics: const AlwaysScrollableScrollPhysics()),
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: FaIcon(
+                  FontAwesomeIcons.bellSlash,
+                  size: 60,
+                  color: colorScheme.primary.withValues(alpha: 0.5),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Bandeja vacía',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'No tienes notificaciones recientes.',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ],
           ),
-          const SizedBox(height: 24),
-          Text(
-            'Bandeja vacía',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'No tienes notificaciones recientes.',
-            style: TextStyle(color: Colors.grey),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildList(ColorScheme colorScheme) {
     return ListView.separated(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
       itemCount: _notifications.length,
       separatorBuilder: (context, index) => const SizedBox(height: 12),
