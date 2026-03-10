@@ -61,7 +61,6 @@ class MainWrapperState extends State<MainWrapper> {
     return Scaffold(
       body: PageView(
         controller: _pageController,
-        physics: const BouncingScrollPhysics(), 
         onPageChanged: (index) {
           setState(() {
             _selectedIndex = index;

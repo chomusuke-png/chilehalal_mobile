@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:chilehalal_mobile/services/notification_service.dart';
 
 class PrayerService {
@@ -10,7 +11,6 @@ class PrayerService {
   PrayerService._internal();
 
   Map<String, String>? _cachedPrayerTimes;
-  
   String currentCity = "Santiago, Chile"; 
 
   Future<Map<String, String>?> getPrayerTimes({bool forceRefresh = false}) async {
@@ -24,7 +24,6 @@ class PrayerService {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (serviceEnabled) {
-        
         LocationPermission permission = await Geolocator.checkPermission();
         if (permission == LocationPermission.denied) {
           permission = await Geolocator.requestPermission();
@@ -73,7 +72,14 @@ class PrayerService {
           "Isha": timings['Isha'],
         };
         
-        await _scheduleDailyNotifications(_cachedPrayerTimes!);
+        final prefs = await SharedPreferences.getInstance();
+        final isEnabled = prefs.getBool('ch_pref_prayer_notifications') ?? true;
+        
+        if (isEnabled) {
+          await _scheduleDailyNotifications(_cachedPrayerTimes!);
+        } else {
+          await NotificationService().cancelAllNotifications();
+        }
         
         return _cachedPrayerTimes;
       }

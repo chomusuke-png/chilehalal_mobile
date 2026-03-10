@@ -3,7 +3,7 @@ import 'package:chilehalal_mobile/services/auth_service.dart';
 import 'package:chilehalal_mobile/screens/auth/register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  final VoidCallback onLoginSuccess; // Callback para avisar que entramos
+  final VoidCallback onLoginSuccess;
 
   const LoginScreen({super.key, required this.onLoginSuccess});
 
@@ -28,7 +28,6 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = false);
 
     if (result['success']) {
-      // Si el login es correcto, ejecutamos el callback del padre
       widget.onLoginSuccess(); 
     } else {
       if (mounted) {

@@ -1,3 +1,4 @@
+import 'package:chilehalal_mobile/screens/tools/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:chilehalal_mobile/screens/tools/about_screen.dart';
@@ -134,6 +135,10 @@ class _ToolboxDrawerState extends State<ToolboxDrawer> {
                   title: 'Ajustes',
                   onTap: () {
                     Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                    );
                   },
                 ),
                 _buildDrawerItem(

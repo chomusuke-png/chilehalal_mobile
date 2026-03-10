@@ -20,7 +20,6 @@ class AboutScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // LOGO Y ESLOGAN
             Center(
               child: Container(
                 padding: const EdgeInsets.all(20),
@@ -42,7 +41,6 @@ class AboutScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
 
-            // SECCIONES DE INFORMACIÓN
             _buildInfoSection(
               context,
               icon: FontAwesomeIcons.clockRotateLeft,
@@ -64,7 +62,6 @@ class AboutScreen extends StatelessWidget {
               description: 'Bajo la Norma N.H.L.A., auditamos toda la cadena de valor: alimentos, empaques, productos químicos y farmacéuticos.',
             ),
 
-            // TARJETA DE IMPACTO DESTACADA
             const SizedBox(height: 10),
             Container(
               padding: const EdgeInsets.all(20),

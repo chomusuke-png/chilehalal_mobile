@@ -123,7 +123,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       if (result['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('✅ Perfil actualizado'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('Perfil actualizado'), backgroundColor: Colors.green),
         );
         Navigator.pop(context, true); 
       } else {
