@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "407234818745",
+    "project_id": "chilehalal-mobile",
+    "storage_bucket": "chilehalal-mobile.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:407234818745:android:2c6d38a8850431cc8d6168",
+        "android_client_info": {
+          "package_name": "com.example.chilehalal_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDhxzru4VPjaQXYmG6VbQou7_FmMp4Tw8k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

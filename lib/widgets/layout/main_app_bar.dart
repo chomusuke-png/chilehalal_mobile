@@ -36,7 +36,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         IconButton(
-          icon: FaIcon(FontAwesomeIcons.solidBell, size: 22, color: colorScheme.primary,),
+          icon: FaIcon(FontAwesomeIcons.solidBell, size: 20, color: colorScheme.primary,),
           onPressed: () {
             Navigator.of(context, rootNavigator: true).push(
               MaterialPageRoute(

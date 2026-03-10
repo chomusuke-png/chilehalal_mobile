@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:chilehalal_mobile/services/inbox_service.dart';
-import 'package:chilehalal_mobile/services/notification_service.dart';
+import 'package:chilehalal_mobile/services/auth_service.dart';
+import 'package:chilehalal_mobile/screens/admin/send_broadcast_screen.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -12,13 +13,32 @@ class NotificationsScreen extends StatefulWidget {
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
   final InboxService _inboxService = InboxService();
+  final AuthService _authService = AuthService();
+  
   bool _isLoading = true;
+  bool _isOwner = false;
   List<Map<String, dynamic>> _notifications = [];
 
   @override
   void initState() {
     super.initState();
-    _loadNotifications();
+    _initializeScreen();
+  }
+
+  Future<void> _initializeScreen() async {
+    await Future.wait([
+      _checkUserRole(),
+      _loadNotifications(),
+    ]);
+  }
+
+  Future<void> _checkUserRole() async {
+    final role = await _authService.getRole();
+    if (mounted) {
+      setState(() {
+        _isOwner = (role == 'owner');
+      });
+    }
   }
 
   Future<void> _loadNotifications() async {
@@ -72,18 +92,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
-  Future<void> _createTestNotification() async {
-    const notificationTitle = '¡Bienvenido a ChileHalal!';
-    const notificationBody = 'Tu cuenta ha sido configurada correctamente. Gracias por preferirnos.';
-    final uniqueId = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    
-    await NotificationService().showInboxNotification(
-      id: uniqueId,
-      title: notificationTitle,
-      body: notificationBody,
+  void _navigateToBroadcastScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const SendBroadcastScreen(),
+      ),
     );
-
-    await _loadNotifications();
   }
 
   @override
@@ -93,15 +108,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Bandeja de Entrada', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Bandeja de Entrada'),
         elevation: 0,
         foregroundColor: colorScheme.onSurface,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add_alert),
-            tooltip: 'Generar prueba',
-            onPressed: _createTestNotification,
-          ),
+          if (_isOwner)
+            IconButton(
+              icon: Icon(Icons.campaign, color: colorScheme.primary),
+              tooltip: 'Notificación Global',
+              onPressed: _navigateToBroadcastScreen,
+            ),
           if (_notifications.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.delete_sweep, color: Colors.red),

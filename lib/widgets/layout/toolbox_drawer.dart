@@ -3,9 +3,34 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:chilehalal_mobile/screens/tools/about_screen.dart';
 import 'package:chilehalal_mobile/screens/tools/halal_guide_screen.dart';
 import 'package:chilehalal_mobile/screens/tools/prayer_schedule_screen.dart';
+import 'package:chilehalal_mobile/services/auth_service.dart';
+import 'package:chilehalal_mobile/screens/admin/send_broadcast_screen.dart';
 
-class ToolboxDrawer extends StatelessWidget {
+class ToolboxDrawer extends StatefulWidget {
   const ToolboxDrawer({super.key});
+
+  @override
+  State<ToolboxDrawer> createState() => _ToolboxDrawerState();
+}
+
+class _ToolboxDrawerState extends State<ToolboxDrawer> {
+  final AuthService _authService = AuthService();
+  bool _isOwner = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkUserRole();
+  }
+
+  Future<void> _checkUserRole() async {
+    final role = await _authService.getRole();
+    if (mounted) {
+      setState(() {
+        _isOwner = (role == 'owner');
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,6 +108,25 @@ class ToolboxDrawer extends StatelessWidget {
                   padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                   child: Divider(),
                 ),
+
+                if (_isOwner) ...[
+                  _buildDrawerItem(
+                    context,
+                    icon: FontAwesomeIcons.bullhorn,
+                    title: 'Notificación Global',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const SendBroadcastScreen()),
+                      );
+                    },
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    child: Divider(),
+                  ),
+                ],
                 
                 _buildDrawerItem(
                   context,
@@ -112,13 +156,24 @@ class ToolboxDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildDrawerItem(BuildContext context, {required IconData icon, required String title, required VoidCallback onTap}) {
+  Widget _buildDrawerItem(
+    BuildContext context, {
+    required IconData icon, 
+    required String title, 
+    required VoidCallback onTap,
+    Color? iconColor,
+    Color? textColor,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
     return ListTile(
-      leading: FaIcon(icon, size: 22, color: colorScheme.primary),
+      leading: FaIcon(icon, size: 22, color: iconColor ?? colorScheme.primary),
       title: Text(
         title,
-        style: const TextStyle(fontSize: 16),
+        style: TextStyle(
+          fontSize: 16, 
+          color: textColor ?? colorScheme.onSurface,
+          fontWeight: textColor != null ? FontWeight.bold : FontWeight.normal,
+        ),
       ),
       trailing: const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
       onTap: onTap,

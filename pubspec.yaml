@@ -24,6 +24,8 @@ dependencies:
   google_nav_bar: ^5.0.7
   geolocator: ^14.0.2
   geocoding: ^4.0.0
+  firebase_core: ^4.5.0
+  firebase_messaging: ^16.1.2
 
 dev_dependencies:
   flutter_test:

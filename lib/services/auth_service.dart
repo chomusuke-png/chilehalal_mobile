@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:chilehalal_mobile/config.dart'; 
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class AuthService {
   static const String _tokenKey = 'ch_auth_token';
@@ -25,6 +26,13 @@ class AuthService {
       if (response.statusCode == 200 && body['success'] == true) {
         await _saveSession(body['data']['token'], body['data']);
         await getUserProfile();
+        
+        try {
+          await FirebaseMessaging.instance.subscribeToTopic('all_users');
+        } catch (e) {
+          // Fallback
+        }
+        
         return {'success': true, 'data': body['data']};
       } else {
         return {
@@ -169,6 +177,12 @@ class AuthService {
   }
 
   Future<void> logout() async {
+    try {
+      await FirebaseMessaging.instance.unsubscribeFromTopic('all_users');
+    } catch (e) {
+      // Fallback
+    }
+    
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
   }

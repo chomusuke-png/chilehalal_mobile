@@ -2,18 +2,31 @@ import 'package:chilehalal_mobile/screens/main_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:chilehalal_mobile/services/notification_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); 
+  
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint('Error inicializando Firebase: $e');
+  }
+
   try {
     await NotificationService().init();
   } catch (e) {
-    debugPrint('Error inicializando notificaciones: $e');
+    debugPrint('Error inicializando notificaciones locales: $e');
   }
+  
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+  
   runApp(const MainApp());
 }
 
