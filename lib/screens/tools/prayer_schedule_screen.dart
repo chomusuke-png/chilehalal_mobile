@@ -91,7 +91,6 @@ class _PrayerScheduleScreenState extends State<PrayerScheduleScreen> {
     return DateTime(now.year, now.month, now.day, int.parse(parts[0]), int.parse(parts[1]));
   }
 
-  // Se añadió el parámetro 'iconColor'
   Widget _buildPrayerTile(String title, String time, IconData icon, Color iconColor, bool isNext) {
     final colorScheme = Theme.of(context).colorScheme;
     
@@ -137,13 +136,12 @@ class _PrayerScheduleScreenState extends State<PrayerScheduleScreen> {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            // Si es el próximo, el fondo del ícono es blanco puro. Si no, es del color del ícono al 15%
                             color: isNext ? Colors.white : iconColor.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
                           child: FaIcon(
                             icon, 
-                            color: iconColor, // El ícono siempre mantiene su color temático
+                            color: iconColor,
                             size: 20,
                           ),
                         ),
@@ -184,7 +182,7 @@ class _PrayerScheduleScreenState extends State<PrayerScheduleScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: Colors.grey[50], 
+      backgroundColor: colorScheme.surface, 
       appBar: AppBar(
         title: const Text('Horario de Oraciones'),
         foregroundColor: colorScheme.onSurface,
@@ -196,8 +194,13 @@ class _PrayerScheduleScreenState extends State<PrayerScheduleScreen> {
               color: Colors.white,
               shape: BoxShape.circle,
               boxShadow: [
-                BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 5)
-              ]
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+              border: Border.all(color: Colors.grey[200]!, width: 1),
             ),
             child: IconButton(
               icon: Icon(Icons.my_location, color: colorScheme.primary, size: 20),
@@ -251,10 +254,11 @@ class _PrayerScheduleScreenState extends State<PrayerScheduleScreen> {
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.03),
-                                blurRadius: 10,
+                                blurRadius: 8,
                                 offset: const Offset(0, 2),
-                              )
+                              ),
                             ],
+                            border: Border.all(color: Colors.grey[200]!, width: 1),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -305,7 +309,6 @@ class _PrayerScheduleScreenState extends State<PrayerScheduleScreen> {
                           ),
                         ),
                         
-                        // Lista con los colores temáticos pasados como parámetro
                         _buildPrayerTile('Fajr', _prayerTimes!['Fajr']!, FontAwesomeIcons.cloudMoon, Colors.indigo[400]!, _nextPrayer == 'Fajr'),
                         _buildPrayerTile('Amanecer', _prayerTimes!['Sunrise']!, FontAwesomeIcons.sun, Colors.orange[400]!, _nextPrayer == 'Sunrise'),
                         _buildPrayerTile('Dhuhr', _prayerTimes!['Dhuhr']!, FontAwesomeIcons.solidSun, Colors.amber[500]!, _nextPrayer == 'Dhuhr'),

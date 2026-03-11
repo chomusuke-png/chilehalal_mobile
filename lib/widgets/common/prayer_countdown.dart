@@ -173,7 +173,7 @@ class _PrayerCountdownState extends State<PrayerCountdown> with SingleTickerProv
     if (_hasError) return Text("Error", style: TextStyle(color: colorScheme.error));
 
     // Definimos medidas para cálculos de posición
-    const double widgetHeight = 110;
+    const double widgetHeight = 100;
     const double astroIconSize = 40.0;
 
     return Material(
@@ -275,8 +275,8 @@ class _PrayerCountdownState extends State<PrayerCountdown> with SingleTickerProv
               Text(
                 'Próxima oración: $_nextPrayerName',
                 style: TextStyle(
-                  color: isDay ? Colors.black87 : Colors.white, 
-                  fontWeight: FontWeight.w700,
+                  color: isDay ? colorScheme.primary : Colors.white, 
+                  fontWeight: FontWeight.w400,
                   fontSize: 16,
                   letterSpacing: 0.5,
                 ),
@@ -285,8 +285,8 @@ class _PrayerCountdownState extends State<PrayerCountdown> with SingleTickerProv
               Text(
                 _formatDuration(_timeRemaining),
                 style: widget.style ?? TextStyle(
-                  fontSize: 48, 
-                  fontWeight: FontWeight.w900, 
+                  fontSize: 42, 
+                  fontWeight: FontWeight.w600, 
                   color: isDay ? colorScheme.primary : Colors.white,
                   fontFeatures: const [FontFeature.tabularFigures()],
                   letterSpacing: -1.5,
