@@ -5,6 +5,7 @@ import 'package:chilehalal_mobile/services/business_service.dart';
 import 'package:chilehalal_mobile/services/coupon_service.dart';
 import 'package:chilehalal_mobile/widgets/common/coupon_card.dart';
 import 'package:chilehalal_mobile/widgets/common/halal_badge.dart';
+import 'package:chilehalal_mobile/widgets/common/business_halal_badge.dart';
 
 class BusinessDetailScreen extends StatefulWidget {
   final int businessId;
@@ -77,7 +78,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
                 ),
               ),
               const SizedBox(width: 10),
-              HalalBadge(status: _business!['computed_halal_status'] ?? 'none'),
+              BusinessHalalBadge(status: _business!['computed_halal_status'] ?? 'none'),
             ],
           ),
           const SizedBox(height: 20),
@@ -207,7 +208,6 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
                   ),
                 ),
                 ...items.map((item) {
-                  final isHalal = item['is_halal'] == true || item['is_halal'] == 'true';
                   
                   return Container(
                     margin: const EdgeInsets.only(bottom: 12),
@@ -248,25 +248,8 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
                               '\$${item['price'] ?? 0}',
                               style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
                             ),
-                            if (isHalal) ...[
-                              const SizedBox(height: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: Colors.green[50],
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(color: Colors.green[200]!),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    FaIcon(FontAwesomeIcons.solidCircleCheck, color: Colors.green[600], size: 10),
-                                    const SizedBox(width: 4),
-                                    Text('Halal', style: TextStyle(color: Colors.green[700], fontSize: 11, fontWeight: FontWeight.bold)),
-                                  ],
-                                ),
-                              ),
-                            ]
+                            const SizedBox(height: 6),
+                            HalalBadge(status: item['is_halal']),
                           ],
                         ),
                       ],

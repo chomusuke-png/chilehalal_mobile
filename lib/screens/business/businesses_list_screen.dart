@@ -8,7 +8,7 @@ import 'package:chilehalal_mobile/widgets/layout/custom_filter_modal.dart';
 import 'package:chilehalal_mobile/widgets/layout/active_filters_row.dart';
 import 'package:chilehalal_mobile/widgets/layout/pagination_controls.dart';
 import 'package:chilehalal_mobile/widgets/common/empty_state.dart';
-import 'package:chilehalal_mobile/widgets/common/halal_badge.dart';
+import 'package:chilehalal_mobile/widgets/common/business_halal_badge.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class BusinessesListScreen extends StatefulWidget {
@@ -180,7 +180,7 @@ class _BusinessesListScreenState extends State<BusinessesListScreen> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      HalalBadge(status: business['computed_halal_status'] ?? 'none'),
+                      BusinessHalalBadge(status: business['computed_halal_status'] ?? 'none'),
                     ],
                   ),
                   const SizedBox(height: 4),

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chilehalal_mobile/screens/catalog/product_screen.dart';
 import 'package:chilehalal_mobile/screens/catalog/edit_product_screen.dart';
 import 'package:chilehalal_mobile/services/auth_service.dart';
 import 'package:chilehalal_mobile/services/product_service.dart';
 import 'package:chilehalal_mobile/services/recent_products_service.dart';
+import 'package:chilehalal_mobile/widgets/common/halal_badge.dart';
 
 class ProductCard extends StatefulWidget {
   final Map<String, dynamic> product;
@@ -114,9 +114,7 @@ class _ProductCardState extends State<ProductCard> {
 
     if (mounted) {
       if (result['success'] == true) {
-        
         await RecentProductsService().removeProductFromRecents(productId);
-
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Producto eliminado.'), backgroundColor: Colors.green),
         );
@@ -134,22 +132,6 @@ class _ProductCardState extends State<ProductCard> {
     final String categoryText = categoriesList.isNotEmpty
         ? categoriesList.join(', ')
         : 'Sin categoría';
-
-    final dynamic rawHalalStatus = widget.product['is_halal'];
-    
-    Color badgeColor = Colors.grey;
-    IconData badgeIcon = FontAwesomeIcons.question;
-
-    if (rawHalalStatus == true || rawHalalStatus == 'yes') {
-      badgeColor = Colors.green;
-      badgeIcon = FontAwesomeIcons.check;
-    } else if (rawHalalStatus == false || rawHalalStatus == 'no') {
-      badgeColor = Colors.red;
-      badgeIcon = FontAwesomeIcons.xmark;
-    } else if (rawHalalStatus == 'doubt') {
-      badgeColor = Colors.orange;
-      badgeIcon = FontAwesomeIcons.exclamation;
-    }
 
     return GestureDetector(
       onTap: () {
@@ -187,25 +169,7 @@ class _ProductCardState extends State<ProductCard> {
                   Positioned(
                     top: 8,
                     right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: badgeColor,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.25),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: FaIcon(
-                        badgeIcon,
-                        size: 14,
-                        color: Colors.white,
-                      ),
-                    ),
+                    child: HalalBadge(status: widget.product['is_halal']),
                   ),
 
                   if (_canEdit || _canDelete)

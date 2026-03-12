@@ -2,39 +2,39 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class HalalBadge extends StatelessWidget {
-  final String status;
+  final dynamic status;
 
   const HalalBadge({super.key, required this.status});
 
   @override
   Widget build(BuildContext context) {
-    if (status == 'none' || status.isEmpty) {
-      return const SizedBox.shrink();
+    final strStatus = status?.toString().toLowerCase() ?? '';
+
+    if (strStatus == 'true' || strStatus == 'yes' || strStatus == '1') {
+      return _buildBadge(Colors.green, 'Halal', FontAwesomeIcons.solidCircleCheck);
+    } else if (strStatus == 'doubt') {
+      return _buildBadge(Colors.orange, 'Dudoso', FontAwesomeIcons.circleExclamation);
     }
+    
+    return const SizedBox.shrink();
+  }
 
-    Color badgeColor = Colors.green; 
-    String text = status == 'full' ? '100% Halal' : 'Opciones Halal';
-    IconData icon = status == 'full' ? FontAwesomeIcons.solidCircleCheck : FontAwesomeIcons.circleInfo;
-
+  Widget _buildBadge(Color color, String text, IconData icon) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: badgeColor.withValues(alpha: 0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: badgeColor.withValues(alpha: 0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          FaIcon(icon, size: 14, color: badgeColor),
+          FaIcon(icon, color: color, size: 10),
           const SizedBox(width: 4),
           Text(
             text, 
-            style: TextStyle(
-              color: badgeColor, 
-              fontWeight: FontWeight.bold, 
-              fontSize: 12
-            )
+            style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)
           ),
         ],
       ),
