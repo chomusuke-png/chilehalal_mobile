@@ -4,7 +4,7 @@ import 'package:chilehalal_mobile/services/product_service.dart';
 import 'package:chilehalal_mobile/services/recent_products_service.dart';
 import 'package:chilehalal_mobile/services/favorite_service.dart';
 import 'package:chilehalal_mobile/services/auth_service.dart';
-import 'package:chilehalal_mobile/screens/product/create_product_screen.dart';
+import 'package:chilehalal_mobile/screens/catalog/create_product_screen.dart';
 
 class ProductScreen extends StatefulWidget {
   final String? barcode;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:chilehalal_mobile/widgets/scanner/scanner_widget.dart';
-import 'package:chilehalal_mobile/screens/product/product_screen.dart';
+import 'package:chilehalal_mobile/screens/catalog/product_screen.dart';
 import 'package:chilehalal_mobile/screens/main_wrapper.dart'; 
 
 class ScannerScreen extends StatefulWidget {

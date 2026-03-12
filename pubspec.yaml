@@ -1,5 +1,5 @@
 name: chilehalal_mobile
-description: "A new Flutter project."
+description: ""
 publish_to: 'none'
 version: 0.1.0
 
@@ -35,6 +35,4 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/images/chilehalal-isotipo.png
-    - assets/images/chilehalal-logo.png
-    - assets/images/halalflash-logo.png
+    - assets/images/

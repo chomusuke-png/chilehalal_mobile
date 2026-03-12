@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:chilehalal_mobile/screens/product/product_screen.dart';
-import 'package:chilehalal_mobile/screens/product/edit_product_screen.dart';
+import 'package:chilehalal_mobile/screens/catalog/product_screen.dart';
+import 'package:chilehalal_mobile/screens/catalog/edit_product_screen.dart';
 import 'package:chilehalal_mobile/services/auth_service.dart';
 import 'package:chilehalal_mobile/services/product_service.dart';
 import 'package:chilehalal_mobile/services/recent_products_service.dart';

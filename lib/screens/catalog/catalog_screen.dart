@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:chilehalal_mobile/services/product_service.dart';
-import 'package:chilehalal_mobile/widgets/layout/catalog_search_bar.dart';
+import 'package:chilehalal_mobile/widgets/layout/custom_search_bar.dart';
 import 'package:chilehalal_mobile/widgets/layout/active_filters_row.dart';
 import 'package:chilehalal_mobile/widgets/layout/product_grid.dart';
 import 'package:chilehalal_mobile/widgets/layout/pagination_controls.dart';
@@ -257,7 +257,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            CatalogSearchBar(
+            CustomSearchBar(
               controller: _searchController,
               onSubmitted: _onSearchChanged,
               onClear: _clearSearch,

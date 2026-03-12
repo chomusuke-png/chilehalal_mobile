@@ -1,3 +1,4 @@
+import 'package:chilehalal_mobile/screens/business/businesses_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
@@ -23,6 +24,7 @@ class MainWrapperState extends State<MainWrapper> {
     HomeScreen(),
     CatalogScreen(),
     ScannerScreen(),
+    BusinessesListScreen(),
     AccountScreen(),
   ];
 
@@ -104,6 +106,10 @@ class MainWrapperState extends State<MainWrapper> {
                   icon: Icons.barcode_reader,
                   iconSize: 26,
                   text: 'Escanear',
+                ),
+                GButton(
+                  icon: FontAwesomeIcons.store,
+                  text: 'Negocios',
                 ),
                 GButton(
                   icon: FontAwesomeIcons.solidUser,

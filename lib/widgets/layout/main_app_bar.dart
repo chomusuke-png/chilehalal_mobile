@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:chilehalal_mobile/screens/notifications/notifications_screen.dart';
+import 'package:chilehalal_mobile/screens/home/notifications_screen.dart';
 
 class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
   final int currentIndex;

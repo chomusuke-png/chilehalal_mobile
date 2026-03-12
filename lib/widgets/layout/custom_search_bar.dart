@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 
-class CatalogSearchBar extends StatelessWidget {
+class CustomSearchBar extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<String> onSubmitted;
   final VoidCallback onClear;
   final VoidCallback onFilterPressed;
   final bool hasContent;
+  final String hintText;
 
-  const CatalogSearchBar({
+  const CustomSearchBar({
     super.key,
     required this.controller,
     required this.onSubmitted,
     required this.onClear,
     required this.onFilterPressed,
     required this.hasContent,
+    this.hintText = 'Buscar...',
   });
 
   @override
@@ -28,7 +30,7 @@ class CatalogSearchBar extends StatelessWidget {
             child: TextField(
               controller: controller,
               decoration: InputDecoration(
-                hintText: 'Buscar producto...',
+                hintText: hintText,
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: hasContent
                     ? IconButton(
