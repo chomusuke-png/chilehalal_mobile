@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:chilehalal_mobile/services/product_service.dart';
 import 'package:chilehalal_mobile/widgets/layout/custom_search_bar.dart';
+import 'package:chilehalal_mobile/widgets/layout/custom_filter_modal.dart';
 import 'package:chilehalal_mobile/widgets/layout/active_filters_row.dart';
 import 'package:chilehalal_mobile/widgets/layout/product_grid.dart';
 import 'package:chilehalal_mobile/widgets/layout/pagination_controls.dart';
@@ -126,122 +127,81 @@ class _CatalogScreenState extends State<CatalogScreen> {
     String? tempCategoryName = _currentCategoryName;
     List<String> tempBrands = List.from(_selectedBrands);
 
-    showModalBottomSheet(
+    CustomFilterModal.show(
       context: context,
+      title: 'Filtros',
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setModalState) {
-            final colorScheme = Theme.of(context).colorScheme;
+      onApply: () {
+        setState(() {
+          _currentCategoryId = tempCategoryId;
+          _currentCategoryName = tempCategoryName;
+          _selectedBrands = tempBrands;
+        });
+        Navigator.pop(context);
+        _loadProducts(page: 1);
+      },
+      contentBuilder: (context, setModalState, scrollController) {
+        final colorScheme = Theme.of(context).colorScheme;
 
-            return DraggableScrollableSheet(
-              expand: false,
-              initialChildSize: 0.6,
-              maxChildSize: 0.9,
-              builder: (_, controller) {
-                return Container(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Filtros', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                          IconButton(
-                            icon: const Icon(Icons.close),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                        ],
-                      ),
-                      const Divider(),
-                      Expanded(
-                        child: _isLoadingFilters
-                            ? const Center(child: CircularProgressIndicator())
-                            : ListView(
-                                controller: controller,
-                                children: [
-                                  const Text('Categorías', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                  const SizedBox(height: 10),
-                                  Wrap(
-                                    spacing: 8.0,
-                                    children: _categories.map((cat) {
-                                      final isSelected = tempCategoryId == cat['id'];
-                                      return ChoiceChip(
-                                        label: Text(cat['name']),
-                                        selected: isSelected,
-                                        selectedColor: colorScheme.primary.withValues(alpha: 0.2),
-                                        checkmarkColor: colorScheme.primary,
-                                        onSelected: (bool selected) {
-                                          setModalState(() {
-                                            if (selected) {
-                                              tempCategoryId = cat['id'];
-                                              tempCategoryName = cat['name'];
-                                            } else {
-                                              tempCategoryId = null;
-                                              tempCategoryName = null;
-                                            }
-                                          });
-                                        },
-                                      );
-                                    }).toList(),
-                                  ),
-                                  
-                                  const SizedBox(height: 24),
-                                  
-                                  const Text('Marcas', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                  const SizedBox(height: 10),
-                                  Wrap(
-                                    spacing: 8.0,
-                                    children: _brands.map((brand) {
-                                      final isSelected = tempBrands.contains(brand);
-                                      return FilterChip(
-                                        label: Text(brand),
-                                        selected: isSelected,
-                                        selectedColor: colorScheme.primary.withValues(alpha: 0.2),
-                                        checkmarkColor: colorScheme.primary,
-                                        onSelected: (bool selected) {
-                                          setModalState(() {
-                                            if (selected) {
-                                              tempBrands.add(brand);
-                                            } else {
-                                              tempBrands.remove(brand);
-                                            }
-                                          });
-                                        },
-                                      );
-                                    }).toList(),
-                                  ),
-                                ],
-                              ),
-                      ),
-                      
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: colorScheme.primary,
-                          foregroundColor: Colors.white,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _currentCategoryId = tempCategoryId;
-                            _currentCategoryName = tempCategoryName;
-                            _selectedBrands = tempBrands;
-                          });
-                          Navigator.pop(context);
-                          _loadProducts(page: 1);
-                        },
-                        child: const Text('APLICAR FILTROS', style: TextStyle(fontWeight: FontWeight.bold)),
-                      ),
-                    ],
-                  ),
+        if (_isLoadingFilters) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        return ListView(
+          controller: scrollController,
+          children: [
+            const Text('Categorías', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8.0,
+              children: _categories.map((cat) {
+                final isSelected = tempCategoryId == cat['id'];
+                return ChoiceChip(
+                  label: Text(cat['name']),
+                  selected: isSelected,
+                  selectedColor: colorScheme.primary.withValues(alpha: 0.2),
+                  checkmarkColor: colorScheme.primary,
+                  onSelected: (bool selected) {
+                    setModalState(() {
+                      if (selected) {
+                        tempCategoryId = cat['id'];
+                        tempCategoryName = cat['name'];
+                      } else {
+                        tempCategoryId = null;
+                        tempCategoryName = null;
+                      }
+                    });
+                  },
                 );
-              },
-            );
-          },
+              }).toList(),
+            ),
+            
+            const SizedBox(height: 24),
+            
+            const Text('Marcas', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8.0,
+              children: _brands.map((brand) {
+                final isSelected = tempBrands.contains(brand);
+                return FilterChip(
+                  label: Text(brand),
+                  selected: isSelected,
+                  selectedColor: colorScheme.primary.withValues(alpha: 0.2),
+                  checkmarkColor: colorScheme.primary,
+                  onSelected: (bool selected) {
+                    setModalState(() {
+                      if (selected) {
+                        tempBrands.add(brand);
+                      } else {
+                        tempBrands.remove(brand);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+          ],
         );
       },
     );
