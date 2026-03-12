@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:chilehalal_mobile/screens/tools/about_screen.dart';
 import 'package:chilehalal_mobile/screens/tools/halal_guide_screen.dart';
 import 'package:chilehalal_mobile/screens/tools/prayer_schedule_screen.dart';
+import 'package:chilehalal_mobile/screens/tools/qibla_compass_screen.dart';
 import 'package:chilehalal_mobile/services/auth_service.dart';
 import 'package:chilehalal_mobile/screens/admin/send_broadcast_screen.dart';
 
@@ -101,6 +102,18 @@ class _ToolboxDrawerState extends State<ToolboxDrawer> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const PrayerScheduleScreen()),
+                    );
+                  },
+                ),
+                _buildDrawerItem(
+                  context,
+                  icon: FontAwesomeIcons.compass,
+                  title: 'Brújula Qibla',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const QiblaCompassScreen()),
                     );
                   },
                 ),

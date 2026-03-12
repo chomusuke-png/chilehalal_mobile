@@ -8,6 +8,7 @@ import 'package:chilehalal_mobile/widgets/layout/custom_filter_modal.dart';
 import 'package:chilehalal_mobile/widgets/layout/active_filters_row.dart';
 import 'package:chilehalal_mobile/widgets/layout/pagination_controls.dart';
 import 'package:chilehalal_mobile/widgets/common/empty_state.dart';
+import 'package:chilehalal_mobile/widgets/common/halal_badge.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class BusinessesListScreen extends StatefulWidget {
@@ -132,24 +133,6 @@ class _BusinessesListScreenState extends State<BusinessesListScreen> {
 
   Widget _buildBusinessCard(Map<String, dynamic> business) {
     final colorScheme = Theme.of(context).colorScheme;
-    
-    bool showBadge = true;
-    Color statusColor = Colors.green;
-    String statusText = '';
-    IconData statusIcon = FontAwesomeIcons.circleInfo;
-
-    switch (business['computed_halal_status']) {
-      case 'full':
-        statusText = '100% Halal';
-        statusIcon = FontAwesomeIcons.solidCircleCheck;
-        break;
-      case 'partial':
-        statusText = 'Opciones Halal';
-        statusIcon = FontAwesomeIcons.circleInfo;
-        break;
-      default:
-        showBadge = false;
-    }
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -170,11 +153,14 @@ class _BusinessesListScreenState extends State<BusinessesListScreen> {
                       imageUrl: business['thumbnail_url'],
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(color: Colors.grey[200], child: const Center(child: CircularProgressIndicator())),
-                      errorWidget: (context, url, error) => Container(color: Colors.grey[200], child: const Icon(Icons.store, size: 50, color: Colors.grey)),
+                      errorWidget: (context, url, error) => Container(
+                        color: Colors.grey[200], 
+                        child: const Center(child: FaIcon(FontAwesomeIcons.store, size: 50, color: Colors.grey)),
+                      ),
                     )
                   : Container(
                       color: Colors.grey[200],
-                      child: const Icon(Icons.store, size: 50, color: Colors.grey),
+                      child: const Center(child: FaIcon(FontAwesomeIcons.store, size: 50, color: Colors.grey)),
                     ),
             ),
             Padding(
@@ -194,23 +180,7 @@ class _BusinessesListScreenState extends State<BusinessesListScreen> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (showBadge)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: statusColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: statusColor.withValues(alpha: 0.3)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              FaIcon(statusIcon, size: 14, color: statusColor),
-                              const SizedBox(width: 4),
-                              Text(statusText, style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        ),
+                      HalalBadge(status: business['computed_halal_status'] ?? 'none'),
                     ],
                   ),
                   const SizedBox(height: 4),

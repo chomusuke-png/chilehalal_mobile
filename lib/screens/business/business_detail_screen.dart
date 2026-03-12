@@ -3,6 +3,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:chilehalal_mobile/services/business_service.dart';
 import 'package:chilehalal_mobile/services/coupon_service.dart';
+import 'package:chilehalal_mobile/widgets/common/coupon_card.dart';
+import 'package:chilehalal_mobile/widgets/common/halal_badge.dart';
 
 class BusinessDetailScreen extends StatefulWidget {
   final int businessId;
@@ -28,7 +30,6 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
   }
 
   Future<void> _loadData() async {
-    // Cargamos los detalles y los cupones al mismo tiempo para ahorrar tiempo
     final results = await Future.wait([
       _businessService.getBusinessDetails(widget.businessId),
       _couponService.getCoupons(businessId: widget.businessId, onlyActive: true),
@@ -46,47 +47,6 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
         _isLoading = false;
       });
     }
-  }
-
-  Widget _buildHalalBadge(String status) {
-    Color color;
-    String text;
-    IconData icon;
-
-    switch (status) {
-      case 'full':
-        color = Colors.green;
-        text = '100% Halal';
-        icon = Icons.check_circle;
-        break;
-      case 'partial':
-        color = Colors.orange;
-        text = 'Opciones Halal';
-        icon = Icons.info;
-        break;
-      default:
-        color = Colors.red;
-        text = 'No Halal';
-        icon = Icons.cancel;
-        break;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: color),
-          const SizedBox(width: 6),
-          Text(text, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13)),
-        ],
-      ),
-    );
   }
 
   Widget _buildContactInfo(ThemeData theme) {
@@ -117,7 +77,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
                 ),
               ),
               const SizedBox(width: 10),
-              _buildHalalBadge(_business!['computed_halal_status'] ?? 'none'),
+              HalalBadge(status: _business!['computed_halal_status'] ?? 'none'),
             ],
           ),
           const SizedBox(height: 20),
@@ -129,7 +89,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3), shape: BoxShape.circle),
-                    child: Icon(Icons.location_on, color: theme.colorScheme.primary, size: 20),
+                    child: FaIcon(FontAwesomeIcons.locationDot, color: theme.colorScheme.primary, size: 16),
                   ),
                   const SizedBox(width: 16),
                   Expanded(child: Text(_business!['address'], style: const TextStyle(fontSize: 15))),
@@ -142,7 +102,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3), shape: BoxShape.circle),
-                  child: Icon(Icons.phone, color: theme.colorScheme.primary, size: 20),
+                  child: FaIcon(FontAwesomeIcons.phone, color: theme.colorScheme.primary, size: 16),
                 ),
                 const SizedBox(width: 16),
                 Expanded(child: Text(_business!['phone'], style: const TextStyle(fontSize: 15))),
@@ -181,7 +141,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
                     height: 140,
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Container(color: Colors.grey[200], width: 140),
-                    errorWidget: (context, url, error) => Container(color: Colors.grey[200], width: 140, child: const Icon(Icons.image)),
+                    errorWidget: (context, url, error) => Container(color: Colors.grey[200], width: 140, child: const Center(child: FaIcon(FontAwesomeIcons.image, color: Colors.grey))),
                   ),
                 ),
               );
@@ -209,38 +169,13 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
         children: [
           Row(
             children: [
-              Icon(FontAwesomeIcons.tag, color: Colors.orange[800], size: 18),
+              FaIcon(FontAwesomeIcons.tag, color: Colors.orange[800], size: 16),
               const SizedBox(width: 8),
-              Text('Cupones Disponibles', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.orange[900])),
+              Text('Ofertas exclusivas de la app', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.orange[900])),
             ],
           ),
           const SizedBox(height: 16),
-          ..._coupons.map((coupon) => Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.orange[300]!, style: BorderStyle.solid),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(child: Text(coupon['discount'], style: const TextStyle(fontWeight: FontWeight.bold))),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.orange[100],
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    coupon['code'],
-                    style: TextStyle(fontWeight: FontWeight.w900, color: Colors.orange[900], letterSpacing: 1.5),
-                  ),
-                ),
-              ],
-            ),
-          )),
+          ..._coupons.map((coupon) => CouponCard(coupon: coupon)),
         ],
       ),
     );
@@ -291,20 +226,9 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      item['name'] ?? '',
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                                    ),
-                                  ),
-                                  if (isHalal)
-                                    Padding(
-                                      padding: const EdgeInsets.only(left: 8.0),
-                                      child: Icon(Icons.check_circle, color: Colors.green[600], size: 16),
-                                    ),
-                                ],
+                              Text(
+                                item['name'] ?? '',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                               ),
                               const SizedBox(height: 4),
                               if (item['description'] != null && item['description'].toString().isNotEmpty)
@@ -316,9 +240,34 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Text(
-                          '\$${item['price'] ?? 0}',
-                          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+                        
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              '\$${item['price'] ?? 0}',
+                              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                            ),
+                            if (isHalal) ...[
+                              const SizedBox(height: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.green[50],
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: Colors.green[200]!),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    FaIcon(FontAwesomeIcons.solidCircleCheck, color: Colors.green[600], size: 10),
+                                    const SizedBox(width: 4),
+                                    Text('Halal', style: TextStyle(color: Colors.green[700], fontSize: 11, fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                              ),
+                            ]
+                          ],
                         ),
                       ],
                     ),
@@ -363,7 +312,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
                     )
                   : Container(
                       color: Colors.grey[300],
-                      child: const Icon(Icons.store, size: 80, color: Colors.grey),
+                      child: const Center(child: FaIcon(FontAwesomeIcons.store, size: 80, color: Colors.grey)),
                     ),
               collapseMode: CollapseMode.pin,
             ),

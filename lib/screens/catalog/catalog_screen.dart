@@ -218,6 +218,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             CustomSearchBar(
+              hintText: 'Buscar productos...',
               controller: _searchController,
               onSubmitted: _onSearchChanged,
               onClear: _clearSearch,
